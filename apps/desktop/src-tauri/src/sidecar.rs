@@ -69,7 +69,7 @@ pub fn base_url(port: u16) -> String {
 
 pub async fn ensure_running(
     app: AppHandle,
-    state: State<'_, HostState>,
+    state: &State<'_, HostState>,
 ) -> Result<SidecarStatus, String> {
     if let Some(status) = try_reuse_existing(app.clone(), &state).await? {
         return Ok(status);
@@ -82,7 +82,7 @@ pub async fn ensure_running(
 
     {
         let mut guard = state.sidecar.lock().map_err(|err| err.to_string())?;
-        if let Some(existing) = guard.take() {
+        if let Some(mut existing) = guard.take() {
             let _ = existing.child.kill();
         }
         *guard = Some(RunningSidecar {
@@ -106,7 +106,7 @@ pub async fn health(
     app: AppHandle,
     state: State<'_, HostState>,
 ) -> Result<serde_json::Value, String> {
-    ensure_running(app, state).await?;
+    ensure_running(app, &state).await?;
     let base_url = {
         let guard = state.sidecar.lock().map_err(|err| err.to_string())?;
         guard
@@ -123,7 +123,7 @@ pub async fn request_route(
     state: State<'_, HostState>,
     request: SidecarRouteRequest,
 ) -> Result<serde_json::Value, String> {
-    ensure_running(app, state).await?;
+    ensure_running(app, &state).await?;
     let base_url = {
         let guard = state.sidecar.lock().map_err(|err| err.to_string())?;
         guard
@@ -170,7 +170,7 @@ async fn try_reuse_existing(
 
     {
         let mut guard = state.sidecar.lock().map_err(|err| err.to_string())?;
-        if let Some(existing) = guard.take() {
+        if let Some(mut existing) = guard.take() {
             let _ = existing.child.kill();
         }
     }

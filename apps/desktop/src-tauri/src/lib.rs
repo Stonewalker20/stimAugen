@@ -2,12 +2,14 @@ mod commands;
 mod paths;
 mod sidecar;
 
+use tauri::Manager;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-            let runtime_paths = paths::resolve_runtime_paths(app)?;
+            let runtime_paths = paths::resolve_runtime_paths(&app.handle().clone())?;
             paths::ensure_runtime_directories(&runtime_paths)?;
             app.manage(sidecar::HostState::new(runtime_paths));
             Ok(())

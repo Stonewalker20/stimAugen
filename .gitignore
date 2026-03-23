@@ -14,7 +14,7 @@ target/
 dist/
 release/
 .tauri/
-src-tauri/gen/
+apps/desktop/src-tauri/gen/
 
 # Build, logs, and caches
 *.log

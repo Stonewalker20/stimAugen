@@ -119,7 +119,7 @@ pub async fn ensure_sidecar_running(
     app: AppHandle,
     state: State<'_, HostState>,
 ) -> Result<sidecar::SidecarStatus, String> {
-    sidecar::ensure_running(app, state).await
+    sidecar::ensure_running(app, &state).await
 }
 
 #[tauri::command]

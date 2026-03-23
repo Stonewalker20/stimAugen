@@ -8,6 +8,7 @@ dependencies are fully installed.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -118,7 +119,20 @@ def verify() -> int:
             return 1
 
     if tool_exists("cargo"):
-        cargo_rc = run_command(["cargo", "check", "--manifest-path", "apps/desktop/src-tauri/Cargo.toml"], ROOT)
+        cargo_env = os.environ.copy()
+        cargo_env["TAURI_CONFIG"] = json.dumps(
+            {
+                "bundle": {
+                    "active": False,
+                    "externalBin": [],
+                }
+            }
+        )
+        cargo_rc = run_command(
+            ["cargo", "check", "--manifest-path", "apps/desktop/src-tauri/Cargo.toml"],
+            cwd=ROOT,
+            env=cargo_env,
+        )
         if cargo_rc != 0:
             return cargo_rc
     else:
