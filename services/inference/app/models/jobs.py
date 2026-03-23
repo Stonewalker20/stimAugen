@@ -16,6 +16,7 @@ class JobSummary(ApiModel):
     created_at: datetime = Field(alias="createdAt")
     started_at: datetime | None = Field(default=None, alias="startedAt")
     finished_at: datetime | None = Field(default=None, alias="finishedAt")
+    cancel_requested_at: datetime | None = Field(default=None, alias="cancelRequestedAt")
 
 
 class JobResponse(JobSummary):
@@ -32,3 +33,4 @@ class JobListResponse(ApiModel):
 class CancelJobResponse(ApiModel):
     id: str
     status: str
+    cancel_requested_at: datetime | None = Field(default=None, alias="cancelRequestedAt")

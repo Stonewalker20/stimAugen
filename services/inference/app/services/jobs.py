@@ -10,6 +10,8 @@ from app.utils.ids import make_id
 
 JobRunner = Callable[[str, dict[str, object], Callable[[int], Awaitable[None]]], Awaitable[dict[str, object]]]
 
+TERMINAL_STATUSES = {"completed", "failed", "cancelled"}
+
 
 class JobManager:
     def __init__(self, job_repository: object, storage: StorageService) -> None:
@@ -46,6 +48,9 @@ class JobManager:
 
         try:
             result = await runner(job_id, payload, update_progress)
+            current = self.job_repository.get_job(job_id)
+            if current is not None and str(current.get("status")) == "cancelled":
+                return
             await self._patch(
                 job_id,
                 status="completed",
@@ -115,13 +120,31 @@ class JobManager:
 
     async def cancel_job(self, job_id: str) -> dict[str, object]:
         task = self._tasks.get(job_id)
-        if task is None:
-            job = self.job_repository.get_job(job_id)
-            if job is None:
-                raise NotFoundError("job", job_id)
-            return {"id": job_id, "status": str(job["status"])}
-        task.cancel()
-        return {"id": job_id, "status": "cancelled"}
+        current = self.job_repository.get_job(job_id)
+        if current is None:
+            raise NotFoundError("job", job_id)
+
+        if str(current.get("status")) not in TERMINAL_STATUSES:
+            cancelled_at = utc_now_iso()
+            current.update(
+                {
+                    "status": "cancelled",
+                    "progress": 0,
+                    "finishedAt": cancelled_at,
+                    "cancelRequestedAt": cancelled_at,
+                    "error": None,
+                }
+            )
+            self.job_repository.upsert_job(current)
+
+        if task is not None:
+            task.cancel()
+
+        return {
+            "id": current["id"],
+            "status": current["status"],
+            "cancelRequestedAt": current.get("cancelRequestedAt"),
+        }
 
     async def shutdown(self) -> None:
         tasks = list(self._tasks.values())
