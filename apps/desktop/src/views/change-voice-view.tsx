@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Card,
@@ -21,6 +21,7 @@ import { chooseAudioFile, chooseExportDestination } from "@/lib/runtime";
 
 interface ChangeVoiceViewProps {
   profiles: VoiceProfile[];
+  jobs: ProcessingJob[];
   settings?: AppSettings;
   selectedProfileId?: string;
   onProfileChange(profileId: string): void;
@@ -37,6 +38,7 @@ interface ChangeVoiceViewProps {
 
 export function ChangeVoiceView({
   profiles,
+  jobs,
   settings,
   selectedProfileId,
   onProfileChange,
@@ -48,9 +50,19 @@ export function ChangeVoiceView({
   const [strength, setStrength] = useState(activeProfile?.defaultSettings.strength ?? 0.65);
   const [pitchPreserve, setPitchPreserve] = useState(activeProfile?.defaultSettings.pitchPreserve ?? true);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("wav");
-  const [lastJob, setLastJob] = useState<ProcessingJob>();
+  const [lastJobId, setLastJobId] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
+  const lastJob = useMemo(() => jobs.find((job) => job.id === lastJobId), [jobs, lastJobId]);
+
+  useEffect(() => {
+    setStrength(activeProfile?.defaultSettings.strength ?? 0.65);
+    setPitchPreserve(activeProfile?.defaultSettings.pitchPreserve ?? true);
+  }, [
+    activeProfile?.id,
+    activeProfile?.defaultSettings.strength,
+    activeProfile?.defaultSettings.pitchPreserve,
+  ]);
 
   const submit = async (preview: boolean) => {
     if (!activeProfile) {
@@ -66,7 +78,7 @@ export function ChangeVoiceView({
         preview,
         outputFormat,
       });
-      setLastJob(job);
+      setLastJobId(job.id);
     } finally {
       setBusy(false);
     }

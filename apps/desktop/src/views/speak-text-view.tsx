@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Card,
@@ -14,6 +14,7 @@ import { chooseExportDestination } from "@/lib/runtime";
 
 interface SpeakTextViewProps {
   profiles: VoiceProfile[];
+  jobs: ProcessingJob[];
   settings?: AppSettings;
   selectedProfileId?: string;
   onProfileChange(profileId: string): void;
@@ -29,6 +30,7 @@ interface SpeakTextViewProps {
 
 export function SpeakTextView({
   profiles,
+  jobs,
   settings,
   selectedProfileId,
   onProfileChange,
@@ -41,9 +43,14 @@ export function SpeakTextView({
   );
   const [speed, setSpeed] = useState(activeProfile?.defaultSettings.speed ?? 1);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("wav");
-  const [lastJob, setLastJob] = useState<ProcessingJob>();
+  const [lastJobId, setLastJobId] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
+  const lastJob = useMemo(() => jobs.find((job) => job.id === lastJobId), [jobs, lastJobId]);
+
+  useEffect(() => {
+    setSpeed(activeProfile?.defaultSettings.speed ?? 1);
+  }, [activeProfile?.id, activeProfile?.defaultSettings.speed]);
 
   const submit = async (preview: boolean) => {
     if (!activeProfile) {
@@ -58,7 +65,7 @@ export function SpeakTextView({
         preview,
         outputFormat,
       });
-      setLastJob(job);
+      setLastJobId(job.id);
     } finally {
       setBusy(false);
     }

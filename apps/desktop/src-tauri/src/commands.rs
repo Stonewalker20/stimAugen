@@ -16,7 +16,7 @@ pub struct SaveDialogRequest {
     pub title: Option<String>,
     pub default_name: Option<String>,
     pub default_directory: Option<String>,
-    pub filters: Vec<DesktopFilter>,
+    pub filters: Option<Vec<DesktopFilter>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -81,7 +81,7 @@ pub async fn save_export_file(
             builder = builder.set_file_name(default_name);
         }
 
-        for filter in request.filters {
+        for filter in request.filters.unwrap_or_default() {
             let extensions: Vec<&str> = filter.extensions.iter().map(String::as_str).collect();
             builder = builder.add_filter(filter.name, &extensions);
         }

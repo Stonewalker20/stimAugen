@@ -57,6 +57,7 @@ export function App() {
         return (
           <SpeakTextView
             profiles={state.profiles}
+            jobs={state.jobs}
             settings={state.settings}
             selectedProfileId={state.selectedProfileId}
             onProfileChange={setSelectedProfileId}
@@ -68,6 +69,7 @@ export function App() {
         return (
           <ChangeVoiceView
             profiles={state.profiles}
+            jobs={state.jobs}
             settings={state.settings}
             selectedProfileId={state.selectedProfileId}
             onProfileChange={setSelectedProfileId}
@@ -76,7 +78,14 @@ export function App() {
           />
         );
       case "clean":
-        return <CleanRecordingView settings={state.settings} onSubmit={submitIsolation} onExport={exportArtifact} />;
+        return (
+          <CleanRecordingView
+            jobs={state.jobs}
+            settings={state.settings}
+            onSubmit={submitIsolation}
+            onExport={exportArtifact}
+          />
+        );
     }
   })();
 

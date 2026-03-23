@@ -145,13 +145,26 @@ export function useWorkspaceState() {
     saveSettings,
     exportArtifact,
     setSelectedProfileId(profileId?: string) {
-      setState((current) => ({
-        ...current,
-        selectedProfileId: profileId,
-        settings: current.settings
+      let nextSettings: AppSettings | undefined;
+      setState((current) => {
+        nextSettings = current.settings
           ? { ...current.settings, lastSelectedProfileId: profileId }
-          : current.settings,
-      }));
+          : current.settings;
+        return {
+          ...current,
+          selectedProfileId: profileId,
+          settings: nextSettings,
+        };
+      });
+
+      if (nextSettings) {
+        void runtime.saveSettings(nextSettings).then((saved) => {
+          setState((current) => ({
+            ...current,
+            settings: saved,
+          }));
+        });
+      }
     },
   };
 }

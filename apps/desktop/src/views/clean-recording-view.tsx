@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Button,
   Card,
@@ -20,6 +20,7 @@ import { ResultPreview } from "@/components/workspace-panels";
 import { chooseAudioFile, chooseExportDestination } from "@/lib/runtime";
 
 interface CleanRecordingViewProps {
+  jobs: ProcessingJob[];
   settings?: AppSettings;
   onSubmit(payload: {
     inputPath: string;
@@ -31,14 +32,15 @@ interface CleanRecordingViewProps {
   onExport(request: ExportRequest): Promise<AudioArtifact>;
 }
 
-export function CleanRecordingView({ onSubmit, onExport, settings }: CleanRecordingViewProps) {
+export function CleanRecordingView({ jobs, onSubmit, onExport, settings }: CleanRecordingViewProps) {
   const [inputPath, setInputPath] = useState("/Users/demo/Desktop/noisy-porch-message.wav");
   const [mode, setMode] = useState<CleanupMode>("voice_focus");
   const [cleanupLevel, setCleanupLevel] = useState(0.58);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("wav");
-  const [lastJob, setLastJob] = useState<ProcessingJob>();
+  const [lastJobId, setLastJobId] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
+  const lastJob = useMemo(() => jobs.find((job) => job.id === lastJobId), [jobs, lastJobId]);
 
   const submit = async (preview: boolean) => {
     setBusy(true);
@@ -50,7 +52,7 @@ export function CleanRecordingView({ onSubmit, onExport, settings }: CleanRecord
         preview,
         outputFormat,
       });
-      setLastJob(job);
+      setLastJobId(job.id);
     } finally {
       setBusy(false);
     }

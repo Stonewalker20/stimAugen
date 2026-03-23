@@ -1,36 +1,18 @@
 import type {
   AppSettings,
   AudioArtifact,
-  CleanupMode,
-  CreateProfileRequest,
-  ExportRequest,
-  HealthResponse,
-  IsolationRequest,
-  JobKind,
-  JobStatus,
-  OutputFormat,
   ProcessingJob,
-  TtsRequest,
-  VoiceConversionRequest,
   VoiceProfile,
 } from "@home-voice-studio/shared-types";
 
 export type {
   AppSettings,
   AudioArtifact,
-  CleanupMode,
-  CreateProfileRequest,
-  ExportRequest,
-  HealthResponse,
-  IsolationRequest,
-  JobKind,
-  JobStatus,
-  OutputFormat,
   ProcessingJob,
-  TtsRequest,
-  VoiceConversionRequest,
   VoiceProfile,
 } from "@home-voice-studio/shared-types";
+
+export type { JobStatus } from "@home-voice-studio/shared-types";
 
 export interface DesktopPaths {
   dataRoot: string;

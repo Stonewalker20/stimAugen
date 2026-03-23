@@ -1,12 +1,14 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "types": ["vite/client", "node"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
       "@home-voice-studio/shared-types": ["../../packages/shared-types/src"],
       "@home-voice-studio/ui": ["../../packages/ui/src/index.tsx"],
-      "@home-voice-studio/ui/styles.css": ["../../packages/ui/src/styles.css"]
+      "@home-voice-studio/ui/styles.css": ["../../packages/ui/src/styles.css"],
+      "@tauri-apps/api/core": ["../../node_modules/@tauri-apps/api/core.d.ts"]
     }
   },
   "include": ["src", "vite.config.ts"]

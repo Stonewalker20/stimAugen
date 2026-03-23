@@ -7,6 +7,7 @@ import type {
   VoiceProfile,
 } from "@home-voice-studio/shared-types";
 import { formatRelativeDate, formatStatus } from "@/lib/format";
+import { resolveArtifactUrl } from "@/lib/runtime";
 
 export function ResultPreview({
   title,
@@ -35,7 +36,7 @@ export function ResultPreview({
               </p>
             </div>
             <audio controls preload="none" className="audio-player">
-              <source src={artifact.path} />
+              <source src={resolveArtifactUrl(artifact.path)} />
             </audio>
           </div>
           {onExport ? (

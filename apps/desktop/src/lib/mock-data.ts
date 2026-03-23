@@ -130,7 +130,7 @@ export const demoSettings: AppSettings = {
   advancedMode: false,
   defaultExportFormat: "wav",
   defaultOutputDirectory: "data/exports",
-  inferenceHost: "http://127.0.0.1:8404",
+  inferenceHost: "http://127.0.0.1:8765",
   retentionDays: 21,
   allowUnsafeVoiceCloning: false,
   lastSelectedProfileId: demoProfiles[0].id,

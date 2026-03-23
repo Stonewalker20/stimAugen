@@ -1,7 +1,7 @@
 import { Badge, Button, Card, ProgressBar, SectionTitle } from "@home-voice-studio/ui";
 import type { AppSettings, AudioArtifact, ExportRequest, OutputFormat, ProcessingJob } from "@home-voice-studio/shared-types";
 import { formatRelativeDate, formatStatus } from "@/lib/format";
-import { chooseExportDestination } from "@/lib/runtime";
+import { chooseExportDestination, resolveArtifactUrl } from "@/lib/runtime";
 
 export function HistoryView({
   jobs,
@@ -37,7 +37,7 @@ export function HistoryView({
               {job.artifacts[0] ? (
                 <div className="audio-card">
                   <audio controls preload="none" className="audio-player">
-                    <source src={job.artifacts[0].path} />
+                    <source src={resolveArtifactUrl(job.artifacts[0].path)} />
                   </audio>
                   {settings ? (
                     <Button

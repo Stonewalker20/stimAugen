@@ -65,23 +65,19 @@ fn build_paths(data_root: PathBuf, is_development: bool) -> RuntimePaths {
 }
 
 fn discover_development_data_root() -> Option<PathBuf> {
-    if let Ok(override_root) = env::var("HOME_VOICE_STUDIO_DATA_ROOT") {
-        let path = PathBuf::from(override_root);
-        if path.exists() {
-            return Some(path);
+    for key in ["HOME_VOICE_STUDIO_DATA_ROOT", "HVS_DATA_ROOT"] {
+        if let Ok(override_root) = env::var(key) {
+            let path = PathBuf::from(override_root);
+            if path.exists() {
+                return Some(path);
+            }
         }
     }
 
-    let mut current_dir = env::current_dir().ok()?;
-    loop {
-        let candidate = current_dir.join("data");
-        if candidate.exists() {
-            return Some(candidate);
-        }
-
-        if !current_dir.pop() {
-            break;
-        }
+    let manifest_candidate = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../data");
+    if manifest_candidate.exists() {
+        return manifest_candidate.canonicalize().ok().or(Some(manifest_candidate));
     }
 
     None

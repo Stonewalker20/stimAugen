@@ -1,3 +1,4 @@
+import { convertFileSrc } from "@tauri-apps/api/core";
 import type {
   AppSettings,
   AudioArtifact,
@@ -31,6 +32,15 @@ interface RuntimeBridge {
     request: IsolationRequest,
   ): Promise<ProcessingJob<IsolationRequest>>;
   exportArtifact(request: ExportRequest): Promise<AudioArtifact>;
+}
+
+interface AcceptedJobLike {
+  jobId: string;
+  kind: string;
+  status: string;
+  progress: number;
+  createdAt: string;
+  pollUrl: string;
 }
 
 declare global {
@@ -88,6 +98,18 @@ function makeAudioArtifact(
     sampleRate: 24000,
     channels: 1,
     createdAt: new Date().toISOString(),
+  };
+}
+
+function acceptedToJob<Request>(accepted: AcceptedJobLike, request: Request): ProcessingJob<Request> {
+  return {
+    id: accepted.jobId,
+    kind: accepted.kind as ProcessingJob<Request>["kind"],
+    status: accepted.status as ProcessingJob<Request>["status"],
+    progress: accepted.progress,
+    createdAt: accepted.createdAt,
+    request,
+    artifacts: [],
   };
 }
 
@@ -303,17 +325,72 @@ function isTauriHost() {
   return typeof window !== "undefined" && typeof window.__TAURI_INTERNALS__ !== "undefined";
 }
 
-function acceptedToJob<Request>(accepted: desktop.AcceptedJob, request: Request): ProcessingJob<Request> {
-  return {
-    id: accepted.jobId,
-    kind: accepted.kind as ProcessingJob<Request>["kind"],
-    status: accepted.status as ProcessingJob<Request>["status"],
-    progress: accepted.progress,
-    createdAt: accepted.createdAt,
-    request,
-    artifacts: [],
-  };
+function getHttpBaseUrl() {
+  const stored = window.localStorage.getItem("home-voice-studio-http-base");
+  return stored || "http://127.0.0.1:8765";
 }
+
+async function requestHttp<TResponse>(method: string, path: string, body?: unknown): Promise<TResponse> {
+  const response = await fetch(`${getHttpBaseUrl()}${path}`, {
+    method,
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} for ${path}`);
+  }
+  return (await response.json()) as TResponse;
+}
+
+async function withFallback<T>(primary: () => Promise<T>, fallback: () => Promise<T>): Promise<T> {
+  try {
+    return await primary();
+  } catch {
+    return fallback();
+  }
+}
+
+const httpBridge: RuntimeBridge = {
+  async getHealth() {
+    return requestHttp<HealthResponse>("GET", "/health");
+  },
+  async getProfiles() {
+    const response = await requestHttp<{ profiles: VoiceProfile[] }>("GET", "/profiles");
+    return response.profiles;
+  },
+  async createProfile(request) {
+    const response = await requestHttp<{ profile: VoiceProfile }>("POST", "/profiles", request);
+    return response.profile;
+  },
+  async getJobs() {
+    const response = await requestHttp<{ jobs: ProcessingJob[] }>("GET", "/jobs");
+    return response.jobs;
+  },
+  async getSettings() {
+    const response = await requestHttp<{ settings: AppSettings }>("GET", "/settings");
+    return response.settings;
+  },
+  async saveSettings(settings) {
+    const response = await requestHttp<{ settings: AppSettings }>("PUT", "/settings", settings);
+    return response.settings;
+  },
+  async submitTts(request) {
+    const response = await requestHttp<{ job: AcceptedJobLike }>("POST", "/tts", request);
+    return acceptedToJob(response.job, request);
+  },
+  async submitVoiceConversion(request) {
+    const response = await requestHttp<{ job: AcceptedJobLike }>("POST", "/voice-conversion", request);
+    return acceptedToJob(response.job, request);
+  },
+  async submitIsolation(request) {
+    const response = await requestHttp<{ job: AcceptedJobLike }>("POST", "/isolation", request);
+    return acceptedToJob(response.job, request);
+  },
+  async exportArtifact(request) {
+    const response = await requestHttp<{ artifact: AudioArtifact }>("POST", "/exports", request);
+    return response.artifact;
+  },
+};
 
 const desktopBridge: RuntimeBridge = {
   async getHealth() {
@@ -364,13 +441,28 @@ const desktopBridge: RuntimeBridge = {
   },
 };
 
-export const runtime = window.__HOME_VOICE_BRIDGE__ ?? (isTauriHost() ? desktopBridge : mockBridge);
+const browserBridge: RuntimeBridge = {
+  getHealth: () => withFallback(() => httpBridge.getHealth(), () => mockBridge.getHealth()),
+  getProfiles: () => withFallback(() => httpBridge.getProfiles(), () => mockBridge.getProfiles()),
+  createProfile: (request) => withFallback(() => httpBridge.createProfile(request), () => mockBridge.createProfile(request)),
+  getJobs: () => withFallback(() => httpBridge.getJobs(), () => mockBridge.getJobs()),
+  getSettings: () => withFallback(() => httpBridge.getSettings(), () => mockBridge.getSettings()),
+  saveSettings: (settings) => withFallback(() => httpBridge.saveSettings(settings), () => mockBridge.saveSettings(settings)),
+  submitTts: (request) => withFallback(() => httpBridge.submitTts(request), () => mockBridge.submitTts(request)),
+  submitVoiceConversion: (request) =>
+    withFallback(() => httpBridge.submitVoiceConversion(request), () => mockBridge.submitVoiceConversion(request)),
+  submitIsolation: (request) =>
+    withFallback(() => httpBridge.submitIsolation(request), () => mockBridge.submitIsolation(request)),
+  exportArtifact: (request) =>
+    withFallback(() => httpBridge.exportArtifact(request), () => mockBridge.exportArtifact(request)),
+};
+
+export const runtime = window.__HOME_VOICE_BRIDGE__ ?? (isTauriHost() ? desktopBridge : browserBridge);
 
 export async function chooseAudioFile(): Promise<string | null> {
   if (!isTauriHost()) {
     return null;
   }
-  await desktop.ensureSidecarRunning();
   return desktop.pickAudioFile();
 }
 
@@ -378,7 +470,6 @@ export async function chooseAudioFiles(): Promise<string[]> {
   if (!isTauriHost()) {
     return [];
   }
-  await desktop.ensureSidecarRunning();
   return desktop.pickAudioFiles();
 }
 
@@ -398,4 +489,11 @@ export async function chooseExportDestination(
       { name: "MP3 Audio", extensions: ["mp3"] },
     ],
   });
+}
+
+export function resolveArtifactUrl(path: string): string {
+  if (!path) {
+    return path;
+  }
+  return isTauriHost() ? convertFileSrc(path) : path;
 }

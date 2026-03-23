@@ -227,12 +227,23 @@ fn resolve_python_executable() -> Result<String, String> {
     ];
 
     for candidate in candidates.into_iter().flatten() {
-        if Command::new(&candidate).arg("--version").output().is_ok() {
+        if python_supports_sidecar(&candidate) {
             return Ok(candidate);
         }
     }
 
-    Err(String::from("could not locate a Python executable for the sidecar"))
+    Err(String::from(
+        "could not locate a Python executable with uvicorn and fastapi available for the sidecar",
+    ))
+}
+
+fn python_supports_sidecar(candidate: &str) -> bool {
+    Command::new(candidate)
+        .arg("-c")
+        .arg("import fastapi, uvicorn")
+        .output()
+        .map(|output| output.status.success())
+        .unwrap_or(false)
 }
 
 fn resolve_inference_workdir() -> Result<PathBuf, String> {
