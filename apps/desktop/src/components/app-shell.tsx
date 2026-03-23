@@ -44,6 +44,9 @@ export function AppShell({
   onRefresh,
   refreshing,
 }: AppShellProps) {
+  const unavailableProviders = health?.providers.filter((provider) => !provider.available) ?? [];
+  const isDegraded = health?.status === "degraded" || unavailableProviders.length > 0;
+
   return (
     <div className="app-shell">
       <aside className="left-rail">
@@ -95,12 +98,12 @@ export function AppShell({
         <Card className="status-card">
           <div className="status-row">
             <SectionTitle title="Sidecar Status" subtitle="Local engine availability" compact />
-            <Badge tone={health?.status === "ok" ? "success" : "warning"}>
-              {health?.status === "ok" ? "Healthy" : "Needs attention"}
+            <Badge tone={isDegraded ? "warning" : "success"}>
+              {isDegraded ? "Needs attention" : "Healthy"}
             </Badge>
           </div>
           <p className="muted">
-            {health?.providers.find((provider) => !provider.available)?.detail ??
+            {unavailableProviders[0]?.detail ??
               "All core providers are available."}
           </p>
           <Button variant="secondary" size="sm" onClick={onRefresh} busy={refreshing}>
@@ -109,7 +112,30 @@ export function AppShell({
         </Card>
       </aside>
 
-      <main className="workspace">{children}</main>
+      <main className="workspace">
+        {isDegraded ? (
+          <Card className="status-banner">
+            <div className="status-row">
+              <div>
+                <SectionTitle
+                  title="Local engine attention needed"
+                  subtitle="One or more offline providers are unavailable. You can keep browsing, then refresh after starting the sidecar."
+                  compact
+                />
+                <p className="muted">
+                  {unavailableProviders.length > 0
+                    ? unavailableProviders.map((provider) => provider.label).join(", ")
+                    : "The sidecar reported a degraded local state."}
+                </p>
+              </div>
+              <Button variant="secondary" size="sm" onClick={onRefresh} busy={refreshing}>
+                Retry health check
+              </Button>
+            </div>
+          </Card>
+        ) : null}
+        {children}
+      </main>
     </div>
   );
 }

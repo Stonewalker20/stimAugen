@@ -52,13 +52,23 @@ npm run dev --workspace @home-voice-studio/desktop
 
 That only exercises the React side. It does not prove packaged desktop startup.
 
+## Desktop Dev Run
+
+If you have Rust and the Tauri prerequisites installed, you can run the full desktop shell in development mode:
+
+```bash
+npm run tauri:dev --workspace @home-voice-studio/desktop
+```
+
+In development, the Rust host falls back to the repo-local Python sidecar launcher automatically.
+
 ## Sidecar Preview
 
 If you want to run the Python sidecar directly:
 
 ```bash
 cd services/inference
-PYTHONPATH=. python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8765
+PYTHONPATH=. python3 -m app.cli --host 127.0.0.1 --port 8765
 ```
 
 The health endpoint should respond at `http://127.0.0.1:8765/health`.
@@ -75,4 +85,5 @@ HVS_E2E_RUN=1 HVS_E2E_URL=http://127.0.0.1:1420 npx playwright test --config tes
 
 - You can test the frontend and backend layers now with `python3 scripts/dev.py verify`.
 - You can test the browser preview now with `npm run dev --workspace @home-voice-studio/desktop`.
-- You cannot yet treat the packaged desktop app as done until the packaged-sidecar task in `docs/remaining-work.md` is closed.
+- You can test the full desktop dev run now with `npm run tauri:dev --workspace @home-voice-studio/desktop` once Rust is installed on your machine.
+- You cannot yet treat the packaged desktop app as done until the packaged-sidecar and packaging tasks in `docs/remaining-work.md` are closed.

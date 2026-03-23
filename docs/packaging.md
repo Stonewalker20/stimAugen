@@ -9,11 +9,18 @@ This document covers local release expectations for macOS and Windows. The app i
 - Ship safe defaults for local storage and logging.
 - Do not require the user to know about the CLI to use core features.
 
+## Sidecar launch contract
+
+- Development runs may launch the sidecar from the repo with `python -m app.cli`.
+- Packaged builds should prefer a bundled `home-voice-studio-inference` executable.
+- `HVS_SIDECAR_BIN` may be used as an explicit override for packaged-sidecar discovery during validation.
+- The packaged executable should accept `--host`, `--port`, `--log-level`, and `--data-root` so the Rust host can use the same contract in dev and release modes.
+
 ## macOS
 
 - Build an app bundle and sign it before distribution.
 - Prepare notarization credentials for release builds.
-- Include the Python sidecar, model bootstrap metadata, and ffmpeg availability checks.
+- Include the sidecar executable, model bootstrap metadata, and ffmpeg availability checks.
 - Verify that the exported app launches without a developer shell.
 
 ## Windows

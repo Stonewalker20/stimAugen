@@ -3,8 +3,8 @@
 ## P0
 
 - Packaged sidecar startup is not production-ready.
-  - The Tauri host still relies on a development-style Python and `uvicorn` launch path.
-  - Packaged macOS and Windows builds need a real bundled-sidecar strategy, startup locking, and packaged binary resolution.
+  - The Rust host now supports a stable launcher contract and packaged binary discovery, but the repo still does not produce the bundled sidecar executable artifact during release builds.
+  - Packaged macOS and Windows builds still need platform-specific sidecar bundling, startup-lock verification, and real release validation.
   - Owner: Desktop Packaging
 
 - End-to-end desktop verification is still missing.

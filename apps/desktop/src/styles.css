@@ -142,13 +142,15 @@ textarea {
 }
 
 .status-card,
-.hero-card {
+.hero-card,
+.status-banner {
   position: relative;
   overflow: hidden;
 }
 
 .status-card::after,
-.hero-card::after {
+.hero-card::after,
+.status-banner::after {
   content: "";
   position: absolute;
   inset: auto -4rem -4rem auto;
@@ -169,6 +171,10 @@ textarea {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.8fr);
   gap: 1rem;
+}
+
+.status-banner {
+  padding: 0.15rem;
 }
 
 .workspace-primary,

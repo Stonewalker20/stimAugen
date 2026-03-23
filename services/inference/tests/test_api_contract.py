@@ -174,6 +174,20 @@ class FakeHealthService:
                 {"id": "tone_fallback", "label": "Tone Fallback", "available": True, "detail": "Test double"}
             ],
             "paths": self.paths,
+            "diagnostics": {
+                "ready": True,
+                "dataRoot": "/tmp",
+                "checks": [
+                    {"id": "data_root", "label": "Data root", "ok": True, "detail": "/tmp"},
+                    {"id": "profiles", "label": "Profiles directory", "ok": True, "detail": "/tmp/profiles"},
+                    {"id": "exports", "label": "Exports directory", "ok": True, "detail": "/tmp/exports"},
+                    {"id": "cache", "label": "Cache directory", "ok": True, "detail": "/tmp/cache"},
+                    {"id": "jobs", "label": "Jobs cache", "ok": True, "detail": "/tmp/cache/jobs"},
+                    {"id": "settings", "label": "Settings parent directory", "ok": True, "detail": "/tmp"},
+                    {"id": "logs", "label": "Logs directory", "ok": True, "detail": "/tmp/logs"},
+                ],
+                "warnings": [],
+            },
             "uptimeSeconds": 1.23,
         }
 
@@ -266,6 +280,7 @@ def test_speak_text_contract(client: TestClient, tmp_path: Path) -> None:
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+    assert response.json()["diagnostics"]["ready"] is True
 
     response = client.post(
         "/tts",
