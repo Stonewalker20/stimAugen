@@ -29,6 +29,18 @@ Home Voice Studio is a local-first desktop app for personal home audio workflows
    ```bash
    npm run status
    ```
+6. Run the current local verification stack:
+   ```bash
+   python3 scripts/dev.py verify
+   ```
+
+## Test Run Now
+
+The current workspace can be tested in layers:
+
+- Frontend and backend verification now via [docs/local-testing.md](docs/local-testing.md)
+- Playwright smoke scaffolding in [tests/e2e/README.md](tests/e2e/README.md)
+- The packaged desktop app is still blocked on the remaining packaged-sidecar work in [docs/remaining-work.md](docs/remaining-work.md)
 
 ## Notes
 

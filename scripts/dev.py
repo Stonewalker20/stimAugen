@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -76,6 +77,57 @@ def bootstrap() -> int:
     return 0
 
 
+def bootstrap_models() -> int:
+    print("Ensuring local model placeholders")
+    return run_command([sys.executable, str(ROOT / "scripts" / "bootstrap_models.py"), "--check"])
+
+
+def run_command(command: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None) -> int:
+    pretty = " ".join(command)
+    location = f" (cwd={cwd})" if cwd else ""
+    print(f"running: {pretty}{location}")
+    completed = subprocess.run(command, cwd=cwd, env=env)
+    return completed.returncode
+
+
+def verify() -> int:
+    print("Workspace verification")
+    bootstrap_rc = bootstrap()
+    if bootstrap_rc != 0:
+        return bootstrap_rc
+
+    models_bootstrap_rc = bootstrap_models()
+    if models_bootstrap_rc != 0:
+        return models_bootstrap_rc
+
+    if doctor() != 0:
+        return 1
+
+    checks: list[tuple[list[str], Path | None, dict[str, str] | None]] = [
+        (["npm", "run", "typecheck"], ROOT, None),
+        (["npm", "run", "build"], ROOT, None),
+        ([sys.executable, "-m", "pytest", "services/inference/tests", "-q"], ROOT, {"PYTHONPATH": "services/inference"}),
+        ([sys.executable, "-m", "compileall", "services/inference/app", "services/inference/tests"], ROOT, None),
+    ]
+
+    for command, cwd, env_vars in checks:
+        env = os.environ.copy()
+        if env_vars:
+            env.update(env_vars)
+        if run_command(command, cwd=cwd, env=env) != 0:
+            return 1
+
+    if tool_exists("cargo"):
+        cargo_rc = run_command(["cargo", "check", "--manifest-path", "apps/desktop/src-tauri/Cargo.toml"], ROOT)
+        if cargo_rc != 0:
+            return cargo_rc
+    else:
+        print("cargo not found; skipping Rust desktop check")
+
+    print("Verification completed")
+    return 0
+
+
 def status() -> int:
     print("Home Voice Studio workspace status")
     print(f"root: {ROOT}")
@@ -95,6 +147,8 @@ def main(argv: list[str]) -> int:
     subcommands.add_parser("doctor", help="Check workspace directories and tools")
     subcommands.add_parser("status", help="Print workspace status")
     subcommands.add_parser("bootstrap", help="Create local data directories")
+    subcommands.add_parser("bootstrap:models", help="Create local model placeholder metadata")
+    subcommands.add_parser("verify", help="Run the current local verification stack")
     args = parser.parse_args(argv)
 
     if args.command == "doctor":
@@ -103,6 +157,10 @@ def main(argv: list[str]) -> int:
         return status()
     if args.command == "bootstrap":
         return bootstrap()
+    if args.command == "bootstrap:models":
+        return bootstrap_models()
+    if args.command == "verify":
+        return verify()
     return 2
 
 

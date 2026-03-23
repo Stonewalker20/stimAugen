@@ -51,6 +51,22 @@ This project is organized as a monorepo. The current workspace contains architec
 - `npm run doctor` checks for the expected directories and tools.
 - `npm run status` prints the workspace layout and current bootstrap state.
 - `npm run bootstrap:models` verifies model placeholder directories and manifests.
+- `python3 scripts/dev.py verify` runs the current frontend and backend verification stack when the required tools are installed.
+
+## What You Can Test Now
+
+The current workspace supports layered local verification without packaging the full desktop app yet.
+
+1. Run `npm install`.
+2. Run `python3 scripts/dev.py verify`.
+3. If you want to inspect the frontend shell, run `npm run dev --workspace @home-voice-studio/desktop`.
+4. If you want to inspect the Python sidecar directly, run `PYTHONPATH=services/inference python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8765` from `services/inference`.
+5. If you want the Playwright smoke scaffold, follow [tests/e2e/README.md](tests/e2e/README.md).
+
+## Current Blocker
+
+- The packaged desktop app is still blocked on the packaged-sidecar work tracked in [docs/remaining-work.md](docs/remaining-work.md).
+- That means the browser preview and backend can be tested now, but the release-style Tauri package is not yet the final test target.
 
 ## Repository layout expectations
 
