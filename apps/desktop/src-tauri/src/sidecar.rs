@@ -201,6 +201,10 @@ fn configure_sidecar_environment(paths: &RuntimePaths, port: u16) {
     env::set_var("HVS_PORT", port.to_string());
     env::set_var("HVS_DATA_ROOT", &paths.data_root);
     env::set_var("HOME_VOICE_STUDIO_DATA_ROOT", &paths.data_root);
+    env::set_var(
+        "HVS_RUNTIME_MODE",
+        if paths.is_development { "development" } else { "packaged" },
+    );
 }
 
 fn spawn_sidecar_process(
@@ -266,7 +270,7 @@ fn resolve_sidecar_launch(app: &AppHandle, paths: &RuntimePaths) -> Result<Sidec
     }
 
     Err(String::from(
-        "could not locate a bundled inference sidecar binary; set HVS_SIDECAR_BIN or rebuild the desktop package with the sidecar included",
+        "could not locate a bundled inference sidecar binary; run `npm run package:desktop` or set HVS_SIDECAR_BIN to an existing home-voice-studio-inference executable",
     ))
 }
 

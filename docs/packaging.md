@@ -15,13 +15,17 @@ This document covers local release expectations for macOS and Windows. The app i
 - Packaged builds should prefer a bundled `home-voice-studio-inference` executable.
 - `HVS_SIDECAR_BIN` may be used as an explicit override for packaged-sidecar discovery during validation.
 - The packaged executable should accept `--host`, `--port`, `--log-level`, and `--data-root` so the Rust host can use the same contract in dev and release modes.
+- The canonical staging command is `npm run package:sidecar`, and the local macOS app-bundle packaging command is `npm run package:desktop`.
 
 ## macOS
 
-- Build an app bundle and sign it before distribution.
+- `npm run package:desktop` now produces a launchable `.app` bundle at `apps/desktop/src-tauri/target/release/bundle/macos/Home Voice Studio.app`.
+- Sign the `.app` before distribution.
 - Prepare notarization credentials for release builds.
+- DMG generation is still a follow-up release task.
 - Include the sidecar executable, model bootstrap metadata, and ffmpeg availability checks.
 - Verify that the exported app launches without a developer shell.
+- Confirm the bundled sidecar is located under `apps/desktop/src-tauri/binaries/` during the packaging step.
 
 ## Windows
 
@@ -29,11 +33,12 @@ This document covers local release expectations for macOS and Windows. The app i
 - Test launching from the Start menu and from a clean user profile.
 - Include ffmpeg and sidecar discovery logic that works without manual PATH edits.
 - Verify that file picker and export dialogs use standard Windows locations.
+- Confirm the bundled sidecar is located under `apps/desktop/src-tauri/binaries/` during the packaging step.
 
 ## Release checklist
 
 1. Confirm `doctor` passes on the target platform.
-2. Confirm the UI launches with a bundled sidecar.
+2. Confirm the UI launches with a bundled sidecar produced by `npm run package:desktop`.
 3. Confirm profile creation, TTS, voice conversion, cleanup, and export flows work offline.
 4. Confirm logs are written to the expected local directories.
 5. Confirm temp files are cleaned after successful and cancelled jobs.

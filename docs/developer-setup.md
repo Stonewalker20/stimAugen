@@ -7,8 +7,9 @@ This project is organized as a monorepo. The current workspace contains architec
 - Node.js 20 or newer
 - Python 3.12 or newer
 - Rust stable via `rustup`
-- ffmpeg on your `PATH`
+- ffmpeg on your `PATH` if you want MP3 export and broader import support
 - Git
+- Optional for packaging the bundled sidecar: `PyInstaller` through `pip install -e "services/inference[package]"`
 
 ## macOS
 
@@ -35,7 +36,7 @@ This project is organized as a monorepo. The current workspace contains architec
 1. Install Node.js from the official installer or `winget`.
 2. Install Python 3.12 from python.org or `winget`.
 3. Install Rust with `rustup-init.exe`.
-4. Install ffmpeg with `winget install Gyan.FFmpeg` or `choco install ffmpeg`.
+4. Install ffmpeg with `winget install Gyan.FFmpeg` or `choco install ffmpeg` if you want MP3 export and broader import support.
 5. Verify your toolchain in PowerShell:
    ```powershell
    node -v
@@ -62,12 +63,13 @@ The current workspace supports layered local verification without packaging the 
 3. If you want to inspect the frontend shell, run `npm run dev --workspace @home-voice-studio/desktop`.
 4. If you have Rust and the Tauri prerequisites installed, run `npm run tauri:dev --workspace @home-voice-studio/desktop` for the full desktop dev shell.
 5. If you want to inspect the Python sidecar directly, run `PYTHONPATH=. python3 -m app.cli --host 127.0.0.1 --port 8765` from `services/inference`.
-6. If you want the Playwright smoke scaffold, follow [tests/e2e/README.md](tests/e2e/README.md).
+6. If you want to stage the packaged desktop launcher path, install the packaging extra and run `npm run package:desktop`.
+7. If you want the Playwright smoke scaffold, follow [tests/e2e/README.md](tests/e2e/README.md).
 
 ## Current Blocker
 
-- The packaged desktop app is still blocked on the packaged-sidecar work tracked in [docs/remaining-work.md](docs/remaining-work.md).
-- That means the browser preview, backend, and a local Tauri dev run can be tested now, but the release-style packaged app is not yet the final test target.
+- The packaged desktop app now has a canonical packaging command, but a bundled sidecar executable is still required before the desktop launcher is truly release-ready.
+- That means the browser preview, backend, local Tauri dev run, and packaging entrypoint can be tested now, but the release-style packaged app is not yet the final test target until the sidecar artifact is built or supplied.
 
 ## Repository layout expectations
 

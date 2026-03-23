@@ -15,8 +15,15 @@ def test_health_reports_readiness_and_optional_warnings(monkeypatch, tmp_path) -
     monkeypatch.setattr(
         "app.services.health_service.detect_capabilities",
         lambda _: [
-            RuntimeCapability("python", "Python Runtime", True, detail="Test runtime"),
-            RuntimeCapability("ffmpeg", "FFmpeg", False, detail="not installed"),
+            RuntimeCapability("speech_generation", "Speak Text", True, detail="Test runtime"),
+            RuntimeCapability(
+                "mp3_export",
+                "MP3 Export",
+                False,
+                required=False,
+                user_visible=False,
+                detail="not installed",
+            ),
         ],
     )
 
@@ -26,4 +33,4 @@ def test_health_reports_readiness_and_optional_warnings(monkeypatch, tmp_path) -
     assert payload["diagnostics"]["ready"] is True
     assert payload["diagnostics"]["dataRoot"] == str(tmp_path)
     assert any(check["id"] == "data_root" and check["ok"] for check in payload["diagnostics"]["checks"])
-    assert payload["diagnostics"]["warnings"] == ["FFmpeg is unavailable: not installed"]
+    assert payload["diagnostics"]["warnings"] == ["MP3 Export is unavailable: not installed"]

@@ -8,8 +8,8 @@ This is the shortest path to verifying the current workspace on macOS or Windows
 - Python sidecar tests and import/runtime checks
 - Workspace bootstrap and model placeholder bootstrap
 - Playwright smoke scaffolding for the main journeys
-
-The full packaged Tauri desktop app is still blocked on the remaining packaged-sidecar work. You can still verify the frontend and backend layers locally now.
+- Packaged-sidecar staging entrypoint via `npm run package:sidecar`
+- Packaged macOS `.app` bundle via `npm run package:desktop`
 
 ## One Command
 
@@ -62,6 +62,23 @@ npm run tauri:dev --workspace @home-voice-studio/desktop
 
 In development, the Rust host falls back to the repo-local Python sidecar launcher automatically.
 
+## Packaged Launcher Path
+
+If you have installed the packaging extra for the Python sidecar, you can stage the bundled desktop artifact with:
+
+```bash
+npm run package:desktop
+```
+
+That command will either copy a prebuilt `HVS_SIDECAR_BIN` into the Tauri bundle area or attempt a PyInstaller build from `services/inference`.
+On macOS it currently finishes with a launchable `.app` bundle at `apps/desktop/src-tauri/target/release/bundle/macos/Home Voice Studio.app`.
+
+## Privacy Defaults
+
+- The sidecar host is locked to loopback-only addresses. Remote `inferenceHost` values are ignored.
+- Voice profile creation and voice generation require explicit consent by default.
+- If `allowUnsafeVoiceCloning` is enabled in Settings, the app will allow consent overrides locally, but that setting stays on the current machine only.
+
 ## Sidecar Preview
 
 If you want to run the Python sidecar directly:
@@ -86,4 +103,5 @@ HVS_E2E_RUN=1 HVS_E2E_URL=http://127.0.0.1:1420 npx playwright test --config tes
 - You can test the frontend and backend layers now with `python3 scripts/dev.py verify`.
 - You can test the browser preview now with `npm run dev --workspace @home-voice-studio/desktop`.
 - You can test the full desktop dev run now with `npm run tauri:dev --workspace @home-voice-studio/desktop` once Rust is installed on your machine.
-- You cannot yet treat the packaged desktop app as done until the packaged-sidecar and packaging tasks in `docs/remaining-work.md` are closed.
+- You can test the packaged macOS launcher now with `npm run package:desktop`.
+- The remaining packaging gap is release-grade distribution polish such as DMG/notarization and Windows installer validation.

@@ -118,6 +118,15 @@ textarea {
   gap: 0.75rem;
 }
 
+.library-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.library-copy {
+  margin: 0;
+}
+
 .secondary-chip {
   padding: 0.75rem 0.95rem;
   border-radius: 999px;
@@ -167,21 +176,36 @@ textarea {
   align-items: flex-start;
 }
 
-.workspace-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.8fr);
-  gap: 1rem;
-}
-
 .status-banner {
   padding: 0.15rem;
 }
 
+.workspace-stack,
 .workspace-primary,
-.workspace-secondary,
 .view-grid {
   display: grid;
   gap: 1rem;
+}
+
+.workspace-stack {
+  align-content: start;
+}
+
+.library-drawer {
+  display: grid;
+  gap: 1rem;
+}
+
+.library-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.library-nav {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .form-grid,
@@ -395,7 +419,6 @@ dd {
 
 @media (max-width: 1100px) {
   .app-shell,
-  .workspace-grid,
   .form-grid,
   .mode-grid {
     grid-template-columns: 1fr;
@@ -411,6 +434,10 @@ dd {
   .audio-card {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .library-header {
+    flex-direction: column;
   }
 }
 

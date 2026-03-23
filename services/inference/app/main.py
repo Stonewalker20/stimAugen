@@ -10,6 +10,13 @@ from app.api.errors import install_error_handlers
 from app.api.routes import exports, health, isolation, jobs, profiles, settings, tts, voice_conversion
 from app.services.runtime import build_service_container
 
+LOCAL_ORIGINS = [
+    "http://127.0.0.1:1420",
+    "http://localhost:1420",
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+]
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,8 +38,8 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
+        allow_origins=LOCAL_ORIGINS,
+        allow_credentials=False,
         allow_methods=["*"],
         allow_headers=["*"],
     )

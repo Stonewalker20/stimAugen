@@ -87,7 +87,7 @@ export function CleanRecordingView({ jobs, onSubmit, onExport, settings }: Clean
       <Card className="hero-card">
         <SectionTitle
           title="Clean Recording"
-          subtitle="Reduce background mess, focus the voice, and prepare audio for playback or conversion."
+          subtitle="Clean noisy recordings before export or before you retarget them to another voice."
         />
         <div className="form-grid">
           <Field label="Input Audio">
@@ -168,6 +168,7 @@ export function CleanRecordingView({ jobs, onSubmit, onExport, settings }: Clean
             Create Exportable File
           </Button>
         </div>
+        <p className="muted">Use this before Change Voice when the original track is too noisy to work with directly.</p>
       </Card>
 
       <ResultPreview
@@ -180,7 +181,7 @@ export function CleanRecordingView({ jobs, onSubmit, onExport, settings }: Clean
       />
 
       <Card>
-        <SectionTitle title="Workflow Tips" subtitle="Plain-language guidance" compact />
+        <SectionTitle title="Best Starting Point" subtitle="Plain-language guidance" compact />
         <ul className="bullet-list">
           <li>Denoise is best for fans, air conditioners, and low room hum.</li>
           <li>Voice Focus works well for phone recordings and casual room capture.</li>

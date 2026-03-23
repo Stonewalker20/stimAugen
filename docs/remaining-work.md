@@ -2,13 +2,14 @@
 
 ## P0
 
-- Packaged sidecar startup is not production-ready.
-  - The Rust host now supports a stable launcher contract and packaged binary discovery, but the repo still does not produce the bundled sidecar executable artifact during release builds.
-  - Packaged macOS and Windows builds still need platform-specific sidecar bundling, startup-lock verification, and real release validation.
+- Packaged desktop release polish is still incomplete.
+  - The repo now produces a launchable macOS `.app` bundle with a staged sidecar.
+  - DMG generation, signing, notarization, and Windows installer validation are still open.
   - Owner: Desktop Packaging
 
-- End-to-end desktop verification is still missing.
-  - The React app builds and the Python test suite passes, but the actual Tauri desktop build and run flow has not been exercised on macOS or Windows.
+- End-to-end desktop usage still needs manual validation.
+  - Verification now covers React build, backend tests, `cargo check`, and a successful macOS `.app` package build.
+  - Real user-run checks for profile creation, speech generation, cleanup, voice conversion, and export from the packaged app still need to be exercised.
   - Owner: Desktop Integration and QA
 
 ## P1
@@ -53,7 +54,7 @@
 
 ## Suggested Execution Order
 
-1. Packaged sidecar launch and Tauri build verification.
+1. Manual packaged-app validation on macOS, then Windows installer validation.
 2. Real model-provider integration for TTS, voice conversion, and isolation.
 3. Queue, cancellation, and recovery hardening.
 4. Playwright or Tauri E2E coverage and release packaging validation.

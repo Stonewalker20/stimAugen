@@ -171,7 +171,13 @@ class FakeHealthService:
             "status": "ok",
             "version": "0.1.0",
             "providers": [
-                {"id": "tone_fallback", "label": "Tone Fallback", "available": True, "detail": "Test double"}
+                {
+                    "id": "speech_generation",
+                    "label": "Speak Text",
+                    "available": True,
+                    "required": True,
+                    "detail": "Test double",
+                }
             ],
             "paths": self.paths,
             "diagnostics": {

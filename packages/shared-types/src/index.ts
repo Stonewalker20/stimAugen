@@ -119,6 +119,7 @@ export interface ProviderCapability {
   id: string;
   label: string;
   available: boolean;
+  required?: boolean;
   detail?: string;
 }
 

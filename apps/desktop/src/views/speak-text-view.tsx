@@ -38,6 +38,7 @@ export function SpeakTextView({
   onExport,
 }: SpeakTextViewProps) {
   const activeProfile = profiles.find((profile) => profile.id === selectedProfileId) ?? profiles[0];
+  const consentBlocked = Boolean(activeProfile && !activeProfile.consentConfirmed && !settings?.allowUnsafeVoiceCloning);
   const [text, setText] = useState(
     "Welcome home. Your dinner timer is running, and the front porch package has arrived.",
   );
@@ -54,6 +55,9 @@ export function SpeakTextView({
 
   const submit = async (preview: boolean) => {
     if (!activeProfile) {
+      return;
+    }
+    if (consentBlocked) {
       return;
     }
     setBusy(true);
@@ -100,7 +104,7 @@ export function SpeakTextView({
       <Card className="hero-card">
         <SectionTitle
           title="Speak Text"
-          subtitle="Type what you want to say, pick a saved voice, and generate speech locally."
+          subtitle="Type what you want to say, pick a built-in voice or your own saved profile, and generate speech locally."
         />
         <div className="form-grid">
           <Field label="Voice">
@@ -151,13 +155,23 @@ export function SpeakTextView({
         </div>
 
         <div className="action-row">
-          <Button onClick={() => void submit(true)} busy={busy}>
+          <Button onClick={() => void submit(true)} busy={busy} disabled={!activeProfile || consentBlocked}>
             Generate Preview
           </Button>
-          <Button variant="secondary" onClick={() => void submit(false)} busy={busy}>
+          <Button
+            variant="secondary"
+            onClick={() => void submit(false)}
+            busy={busy}
+            disabled={!activeProfile || consentBlocked}
+          >
             Create Exportable File
           </Button>
         </div>
+        {consentBlocked ? (
+          <p className="muted">
+            Voice generation is locked until this profile has explicit consent, or unsafe cloning is enabled in Settings.
+          </p>
+        ) : null}
       </Card>
 
       <ResultPreview

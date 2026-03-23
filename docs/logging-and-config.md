@@ -7,7 +7,7 @@ The MVP should keep configuration simple and local-only. The following environme
 - `HVS_DATA_ROOT`: overrides the repo-local data root during development
 - `HVS_LOG_LEVEL`: sets the global log level, default `info`
 - `HVS_LOG_DIR`: overrides the log output directory
-- `HVS_INFERENCE_HOST`: sidecar host and port, default `127.0.0.1:8765`
+- `HVS_INFERENCE_HOST`: sidecar host and port. The runtime normalizes this to the local loopback host and ignores remote values. Default `127.0.0.1:8765`
 - `HVS_DEFAULT_EXPORT_FORMAT`: default export format, `wav` or `mp3`
 - `HVS_ADVANCED_MODE`: enables advanced controls in the UI when set to `true`
 
@@ -23,6 +23,7 @@ The MVP should keep configuration simple and local-only. The following environme
 - Reserve technical details for structured logs and the advanced UI toggle.
 - Attach a stable error code to every failure that reaches the UI.
 - Do not log raw reference audio paths or consent-sensitive text unless it is needed for debugging and the user has opted into advanced diagnostics.
+- Treat consent state as privacy-sensitive metadata. Keep it in local storage or local files only.
 
 ## Structured error shape
 

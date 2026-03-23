@@ -56,30 +56,28 @@ class AppContainer:
     def tts_service(self) -> "TtsService":
         from .services.tts import TtsService
 
-        return TtsService(self.audio_pipeline, self.profile_repository, self.storage, self.config)
+        return TtsService(self.audio_pipeline, self.profile_repository, self.settings_repository, self.storage, self.job_manager)
 
     @cached_property
     def voice_conversion_service(self) -> "VoiceConversionService":
         from .services.voice_conversion import VoiceConversionService
 
-        return VoiceConversionService(self.audio_pipeline, self.profile_repository, self.storage, self.config)
+        return VoiceConversionService(
+            self.audio_pipeline,
+            self.profile_repository,
+            self.settings_repository,
+            self.storage,
+            self.job_manager,
+        )
 
     @cached_property
     def isolation_service(self) -> "IsolationService":
         from .services.isolation import IsolationService
 
-        return IsolationService(self.audio_pipeline, self.storage, self.config)
+        return IsolationService(self.audio_pipeline, self.storage, self.job_manager)
 
     @cached_property
     def job_manager(self) -> "JobManager":
         from .services.jobs import JobManager
 
-        return JobManager(
-            job_repository=self.job_repository,
-            storage=self.storage,
-            tts_service=self.tts_service,
-            voice_conversion_service=self.voice_conversion_service,
-            isolation_service=self.isolation_service,
-            audio_pipeline=self.audio_pipeline,
-            config=self.config,
-        )
+        return JobManager(self.job_repository, self.storage)

@@ -5,7 +5,7 @@
   "identifier": "com.stimaugen.homevoicestudio",
   "build": {
     "beforeDevCommand": "npm run dev --workspace @home-voice-studio/desktop",
-    "beforeBuildCommand": "npm run build --workspace @home-voice-studio/desktop",
+    "beforeBuildCommand": "npm run build --workspace @home-voice-studio/desktop && node ../../scripts/package-sidecar.mjs prepare",
     "devUrl": "http://127.0.0.1:1420",
     "frontendDist": "../dist"
   },
@@ -27,4 +27,3 @@
     ]
   }
 }
-

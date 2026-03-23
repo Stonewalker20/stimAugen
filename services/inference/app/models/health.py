@@ -9,6 +9,7 @@ class ProviderCapability(ApiModel):
     id: str
     label: str
     available: bool
+    required: bool = True
     detail: str | None = None
 
 

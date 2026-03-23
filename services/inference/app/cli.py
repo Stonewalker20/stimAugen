@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import os
 
+from app.main import app as application
 import uvicorn
 
 
@@ -30,7 +31,7 @@ def main() -> None:
         os.environ["HOME_VOICE_STUDIO_DATA_ROOT"] = args.data_root
 
     uvicorn.run(
-        "app.main:app",
+        application,
         host=args.host,
         port=args.port,
         log_level=args.log_level,

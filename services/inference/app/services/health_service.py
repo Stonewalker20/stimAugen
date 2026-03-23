@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 import os
 from pathlib import Path
 from time import monotonic
@@ -33,6 +32,16 @@ class HealthService:
     async def get_health(self) -> dict[str, object]:
         paths = self.config.paths
         capabilities = detect_capabilities(self.config)
+        visible_providers = [
+            {
+                "id": cap.id,
+                "label": cap.label,
+                "available": cap.available,
+                "detail": cap.detail,
+            }
+            for cap in capabilities
+            if cap.user_visible
+        ]
         path_checks = [
             self._path_check("data_root", "Data root", paths.root),
             self._path_check("profiles", "Profiles directory", paths.profiles),
@@ -45,13 +54,14 @@ class HealthService:
         warnings = [
             f"{cap.label} is unavailable: {cap.detail}" if cap.detail else f"{cap.label} is unavailable"
             for cap in capabilities
-            if not cap.available
+            if not cap.available and not cap.required
         ]
-        ready = all(check.ok for check in path_checks)
+        required_capabilities_ready = all(cap.available for cap in capabilities if cap.required)
+        ready = all(check.ok for check in path_checks) and required_capabilities_ready
         return {
             "status": "ok" if ready else "degraded",
             "version": __version__,
-            "providers": [asdict(cap) for cap in capabilities],
+            "providers": visible_providers,
             "paths": {
                 "profiles": str(paths.profiles),
                 "exports": str(paths.exports),

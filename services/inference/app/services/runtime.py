@@ -36,8 +36,14 @@ async def build_service_container() -> RuntimeServiceContainer:
 
     return RuntimeServiceContainer(
         health_service=HealthService(config),
-        tts_service=TtsService(audio_pipeline, profile_repository, storage, job_manager),
-        voice_conversion_service=VoiceConversionService(audio_pipeline, profile_repository, storage, job_manager),
+        tts_service=TtsService(audio_pipeline, profile_repository, settings_repository, storage, job_manager),
+        voice_conversion_service=VoiceConversionService(
+            audio_pipeline,
+            profile_repository,
+            settings_repository,
+            storage,
+            job_manager,
+        ),
         isolation_service=IsolationService(audio_pipeline, storage, job_manager),
         profile_service=ProfileService(profile_repository),
         job_service=JobService(job_manager),

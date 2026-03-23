@@ -6,6 +6,7 @@ from app.api.errors import AppError, NotFoundError
 from app.services.audio_pipeline import AudioPipeline
 from app.services.jobs import JobManager
 from app.services.storage import StorageService
+from app.utils.privacy import voice_cloning_allowed
 from app.utils.clock import utc_now_iso
 
 
@@ -54,22 +55,42 @@ class VoiceConversionService:
         self,
         audio_pipeline: AudioPipeline,
         profile_repository: object,
+        settings_repository: object,
         storage: StorageService,
         job_manager: JobManager,
     ) -> None:
         self.audio_pipeline = audio_pipeline
         self.profile_repository = profile_repository
+        self.settings_repository = settings_repository
         self.storage = storage
         self.job_manager = job_manager
 
     async def submit(self, request: object) -> object:
         payload = request.model_dump(by_alias=True) if hasattr(request, "model_dump") else dict(request)
+        profile_id = str(payload["profileId"])
+        profile = self.profile_repository.get_profile(profile_id)
+        if profile is None:
+            raise NotFoundError("profile", profile_id)
+        settings = self.settings_repository.get_settings()
+        if not voice_cloning_allowed(profile, settings):
+            raise AppError(
+                "consent_required",
+                "Voice cloning is blocked until the selected profile has explicit consent.",
+                status_code=422,
+            )
         return await self.job_manager.submit("voice_conversion", payload, self._run_conversion)
 
     async def _run_conversion(self, job_id: str, payload: dict[str, object], update_progress: object) -> dict[str, object]:
         profile = self.profile_repository.get_profile(str(payload["profileId"]))
         if profile is None:
             raise NotFoundError("profile", str(payload["profileId"]))
+        settings = self.settings_repository.get_settings()
+        if not voice_cloning_allowed(profile, settings):
+            raise AppError(
+                "consent_required",
+                "Voice cloning is blocked until the selected profile has explicit consent.",
+                status_code=422,
+            )
         input_path = Path(str(payload["inputPath"]))
         if not input_path.exists():
             raise AppError("missing_input", "The source audio file could not be found.", status_code=404, details=str(input_path))

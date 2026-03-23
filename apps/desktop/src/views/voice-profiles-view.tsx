@@ -64,7 +64,7 @@ export function VoiceProfilesView({
       <Card className="hero-card">
         <SectionTitle
           title="Voice Profiles"
-          subtitle="Save reusable target voices with explicit consent and clear reference management."
+          subtitle="Upload local clips to create a voice you can reuse in speech and voice change."
         />
         <div className="form-grid">
           <Field label="Profile Name">
@@ -75,7 +75,7 @@ export function VoiceProfilesView({
             <TextArea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} />
           </Field>
 
-          <Field label="Reference Clip Paths" description="One local file path per line.">
+          <Field label="Reference Clip Paths" description="One local audio file path per line.">
             <>
               <TextArea value={clipPaths} onChange={(event) => setClipPaths(event.target.value)} rows={5} />
               <div className="action-row">
@@ -90,7 +90,7 @@ export function VoiceProfilesView({
                     })
                   }
                 >
-                  Choose Reference Clips
+                  Choose Audio Files
                 </Button>
               </div>
             </>
@@ -101,11 +101,14 @@ export function VoiceProfilesView({
             description="Required before a profile can be created or used for conversion."
           >
             <Toggle checked={consentConfirmed} onChange={setConsentConfirmed} />
+            <p className="muted">
+              Reference clips stay on this device and are stored with the local profile files.
+            </p>
           </Field>
         </div>
 
         <div className="action-row">
-          <Button onClick={() => void submit()} busy={busy}>
+          <Button onClick={() => void submit()} busy={busy} disabled={!name || !consentConfirmed}>
             Create Voice Profile
           </Button>
         </div>

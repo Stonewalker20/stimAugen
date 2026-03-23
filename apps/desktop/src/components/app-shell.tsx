@@ -11,12 +11,12 @@ export type MainView = "speak" | "convert" | "clean";
 export type SecondaryView = "profiles" | "history" | "settings" | "models";
 
 const mainTabs: { id: MainView; label: string; caption: string }[] = [
-  { id: "speak", label: "Speak Text", caption: "Turn typed words into voice." },
+  { id: "speak", label: "Speak Text", caption: "Generate speech from typed words." },
   { id: "convert", label: "Change Voice", caption: "Retarget recorded speech." },
-  { id: "clean", label: "Clean Recording", caption: "Remove noise and focus speech." },
+  { id: "clean", label: "Clean Recording", caption: "Reduce noise and sharpen speech." },
 ];
 
-const secondaryViews: { id: SecondaryView; label: string }[] = [
+export const secondaryViews: { id: SecondaryView; label: string }[] = [
   { id: "profiles", label: "Voice Profiles" },
   { id: "history", label: "History" },
   { id: "settings", label: "Settings" },
@@ -27,9 +27,9 @@ interface AppShellProps {
   children: ReactNode;
   health?: HealthResponse;
   activeMainView: MainView;
-  activeSecondaryView: SecondaryView;
+  libraryOpen: boolean;
   onMainViewChange(next: MainView): void;
-  onSecondaryViewChange(next: SecondaryView): void;
+  onLibraryToggle(): void;
   onRefresh(): void;
   refreshing: boolean;
 }
@@ -38,23 +38,25 @@ export function AppShell({
   children,
   health,
   activeMainView,
-  activeSecondaryView,
+  libraryOpen,
   onMainViewChange,
-  onSecondaryViewChange,
+  onLibraryToggle,
   onRefresh,
   refreshing,
 }: AppShellProps) {
-  const unavailableProviders = health?.providers.filter((provider) => !provider.available) ?? [];
-  const isDegraded = health?.status === "degraded" || unavailableProviders.length > 0;
+  const requiredUnavailableProviders =
+    health?.providers.filter((provider) => provider.required !== false && !provider.available) ?? [];
+  const isDegraded = health?.status === "degraded" || requiredUnavailableProviders.length > 0;
 
   return (
     <div className="app-shell">
       <aside className="left-rail">
         <div className="brand-lockup">
           <p className="eyebrow">Home Voice Studio</p>
-          <h1>Local voice tools for the house.</h1>
+          <h1>Speak Text first. Keep the rest nearby.</h1>
           <p className="muted">
-            Build speech, reshape voice, and clean recordings without leaving your desktop.
+            Start with speech generation, then open the library only when you need profiles,
+            history, settings, or model status.
           </p>
         </div>
 
@@ -76,24 +78,21 @@ export function AppShell({
           ))}
         </nav>
 
-        <nav className="nav-stack">
+        <Card className="library-card">
           <SectionTitle
             title="Library"
-            subtitle="Profiles, jobs, settings, and model health."
+            subtitle="Profiles, history, settings, and model status stay out of the way."
+            compact
           />
-          <div className="secondary-nav">
-            {secondaryViews.map((view) => (
-              <button
-                key={view.id}
-                className={`secondary-chip ${activeSecondaryView === view.id ? "is-active" : ""}`}
-                type="button"
-                onClick={() => onSecondaryViewChange(view.id)}
-              >
-                {view.label}
-              </button>
-            ))}
-          </div>
-        </nav>
+          <p className="muted library-copy">
+            {libraryOpen
+              ? "The library drawer is open in the main workspace."
+              : "Open it when you want to manage saved voices or inspect past jobs."}
+          </p>
+          <Button variant="secondary" size="sm" onClick={onLibraryToggle}>
+            {libraryOpen ? "Hide library" : "Open library"}
+          </Button>
+        </Card>
 
         <Card className="status-card">
           <div className="status-row">
@@ -103,7 +102,7 @@ export function AppShell({
             </Badge>
           </div>
           <p className="muted">
-            {unavailableProviders[0]?.detail ??
+            {requiredUnavailableProviders[0]?.detail ??
               "All core providers are available."}
           </p>
           <Button variant="secondary" size="sm" onClick={onRefresh} busy={refreshing}>
@@ -123,8 +122,8 @@ export function AppShell({
                   compact
                 />
                 <p className="muted">
-                  {unavailableProviders.length > 0
-                    ? unavailableProviders.map((provider) => provider.label).join(", ")
+                  {requiredUnavailableProviders.length > 0
+                    ? requiredUnavailableProviders.map((provider) => provider.label).join(", ")
                     : "The sidecar reported a degraded local state."}
                 </p>
               </div>

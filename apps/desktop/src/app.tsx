@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Button, Card, Spinner } from "@home-voice-studio/ui";
-import { AppShell, type MainView, type SecondaryView } from "@/components/app-shell";
+import { Button, Card, SectionTitle, Spinner } from "@home-voice-studio/ui";
 import {
-  HistoryPanel,
-  ModelStatusPanel,
-  ProfileStrip,
-  SettingsSummary,
-} from "@/components/workspace-panels";
+  AppShell,
+  secondaryViews,
+  type MainView,
+  type SecondaryView,
+} from "@/components/app-shell";
 import { useWorkspaceState } from "@/lib/state";
 import { CleanRecordingView } from "@/views/clean-recording-view";
 import { ChangeVoiceView } from "@/views/change-voice-view";
@@ -30,6 +29,7 @@ export function App() {
   } = useWorkspaceState();
   const [activeMainView, setActiveMainView] = useState<MainView>("speak");
   const [activeSecondaryView, setActiveSecondaryView] = useState<SecondaryView>("profiles");
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   if (state.loading) {
     return (
@@ -73,6 +73,7 @@ export function App() {
             settings={state.settings}
             selectedProfileId={state.selectedProfileId}
             onProfileChange={setSelectedProfileId}
+            onCreateProfile={createProfile}
             onSubmit={submitVoiceConversion}
             onExport={exportArtifact}
           />
@@ -106,28 +107,46 @@ export function App() {
     <AppShell
       health={state.health}
       activeMainView={activeMainView}
-      activeSecondaryView={activeSecondaryView}
+      libraryOpen={libraryOpen}
       onMainViewChange={setActiveMainView}
-      onSecondaryViewChange={setActiveSecondaryView}
+      onLibraryToggle={() => setLibraryOpen((current) => !current)}
       onRefresh={() => void refresh()}
       refreshing={state.refreshing}
     >
-      <div className="workspace-grid">
-        <section className="workspace-primary">
-          <ProfileStrip
-            profiles={state.profiles}
-            selectedProfileId={state.selectedProfileId}
-            onSelect={setSelectedProfileId}
-          />
-          {mainView}
-        </section>
+      <div className="workspace-stack">
+        <section className="workspace-primary">{mainView}</section>
 
-        <aside className="workspace-secondary">
-          <HistoryPanel jobs={state.jobs} />
-          <ModelStatusPanel health={state.health} />
-          <SettingsSummary settings={state.settings} />
-          {secondaryView}
-        </aside>
+        {libraryOpen ? (
+          <Card className="library-drawer">
+            <div className="library-header">
+              <SectionTitle
+                title="Library"
+                subtitle="Profiles, history, settings, and model status are tucked away here."
+              />
+              <Button variant="secondary" size="sm" onClick={() => setLibraryOpen(false)}>
+                Hide library
+              </Button>
+            </div>
+
+            <div className="secondary-nav library-nav">
+              {secondaryViews.map((view) => (
+                <button
+                  key={view.id}
+                  className={`secondary-chip ${activeSecondaryView === view.id ? "is-active" : ""}`}
+                  type="button"
+                  onClick={() => {
+                    setActiveSecondaryView(view.id);
+                    setLibraryOpen(true);
+                  }}
+                >
+                  {view.label}
+                </button>
+              ))}
+            </div>
+
+            {secondaryView}
+          </Card>
+        ) : null}
       </div>
     </AppShell>
   );

@@ -1,7 +1,7 @@
 {
   "id": "sample_warm_narrator",
   "name": "Warm Narrator",
-  "description": "Seed example profile for local testing.",
+  "description": "Steady everyday voice for reminders, timers, and home notices.",
   "consentConfirmed": true,
   "createdAt": "2026-03-23T19:48:47+00:00",
   "updatedAt": "2026-03-23T19:48:47+00:00",
@@ -12,7 +12,7 @@
       "jobId": null,
       "kind": "reference",
       "label": "Warm Narrator Sample",
-      "path": "/Users/cordellstonecipher/stimAugen/data/profiles/sample_warm_narrator/references/warm-narrator.wav",
+      "path": "references/warm-narrator.wav",
       "format": "wav",
       "durationMs": 749,
       "sampleRate": 22050,
@@ -29,6 +29,6 @@
   "analysis": {
     "estimatedPitchHz": 220.0,
     "averageLevelDb": -18.0,
-    "notes": "Generated seed profile for MVP smoke testing."
+    "notes": "Balanced and friendly. Good default for general home speech."
   }
 }

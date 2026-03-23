@@ -53,6 +53,7 @@ declare global {
 const pause = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
 const STORE_KEY = "home-voice-studio-demo-store";
+const LOCAL_HTTP_BASE = "http://127.0.0.1:8765";
 
 function loadStore(): DemoStore {
   const raw = window.localStorage.getItem(STORE_KEY);
@@ -73,6 +74,15 @@ function loadStore(): DemoStore {
 
 function saveStore(store: DemoStore) {
   window.localStorage.setItem(STORE_KEY, JSON.stringify(store));
+}
+
+function isLocalHttpBase(value: string) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" && ["localhost", "127.0.0.1", "::1"].includes(parsed.hostname);
+  } catch {
+    return false;
+  }
 }
 
 function upsertJob(store: DemoStore, job: ProcessingJob) {
@@ -327,7 +337,13 @@ function isTauriHost() {
 
 function getHttpBaseUrl() {
   const stored = window.localStorage.getItem("home-voice-studio-http-base");
-  return stored || "http://127.0.0.1:8765";
+  if (stored && isLocalHttpBase(stored)) {
+    return stored;
+  }
+  if (stored) {
+    window.localStorage.setItem("home-voice-studio-http-base", LOCAL_HTTP_BASE);
+  }
+  return LOCAL_HTTP_BASE;
 }
 
 async function requestHttp<TResponse>(method: string, path: string, body?: unknown): Promise<TResponse> {

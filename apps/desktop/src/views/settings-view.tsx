@@ -48,15 +48,11 @@ export function SettingsView({ settings, onSave }: SettingsViewProps) {
             />
           </Field>
 
-          <Field label="Sidecar Host">
-            <Input
-              value={draft.inferenceHost}
-              onChange={(event) =>
-                setDraft((current) =>
-                  current ? { ...current, inferenceHost: event.target.value } : current,
-                )
-              }
-            />
+          <Field
+            label="Sidecar Host"
+            description="Locked to the local machine. Remote hosts are ignored."
+          >
+            <Input value={draft.inferenceHost} readOnly />
           </Field>
 
           <Field label="Advanced Controls">
@@ -77,6 +73,9 @@ export function SettingsView({ settings, onSave }: SettingsViewProps) {
                 )
               }
             />
+            <p className="muted">
+              Only enable this if every voice profile you use has explicit permission.
+            </p>
           </Field>
         </div>
         <div className="action-row">

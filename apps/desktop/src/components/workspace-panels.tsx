@@ -145,8 +145,8 @@ export function ModelStatusPanel({ health }: { health?: HealthResponse }) {
               <p className="status-title">{provider.label}</p>
               <p className="muted">{provider.detail}</p>
             </div>
-            <Badge tone={provider.available ? "success" : "warning"}>
-              {provider.available ? "Ready" : "Optional"}
+            <Badge tone={provider.available ? "success" : provider.required === false ? "warning" : "danger"}>
+              {provider.available ? "Ready" : provider.required === false ? "Optional" : "Unavailable"}
             </Badge>
           </div>
         ))}
