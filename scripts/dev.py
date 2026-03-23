@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -142,6 +143,39 @@ def verify() -> int:
     return 0
 
 
+def verify_desktop_package() -> int:
+    print("Desktop packaging verification")
+    if doctor() != 0:
+        return 1
+    if not tool_exists("cargo"):
+        print("cargo not found; cannot verify desktop packaging")
+        return 1
+
+    if run_command(["npm", "run", "package:desktop"], cwd=ROOT, env=os.environ.copy()) != 0:
+        return 1
+
+    system = platform.system()
+    if system == "Darwin":
+        artifact = ROOT / "apps" / "desktop" / "src-tauri" / "target" / "release" / "bundle" / "macos" / "Home Voice Studio.app"
+        if not artifact.exists():
+            print(f"expected macOS app bundle missing: {artifact}")
+            return 1
+        print(f"desktop package verified: {artifact}")
+        return 0
+
+    if system == "Windows":
+        bundle_root = ROOT / "apps" / "desktop" / "src-tauri" / "target" / "release" / "bundle"
+        candidates = list(bundle_root.glob("msi/*.msi")) + list(bundle_root.glob("nsis/*.exe"))
+        if not candidates:
+            print(f"expected Windows installer missing under: {bundle_root}")
+            return 1
+        print(f"desktop package verified: {candidates[0]}")
+        return 0
+
+    print(f"desktop package verification is not implemented for platform: {system}")
+    return 1
+
+
 def status() -> int:
     print("Home Voice Studio workspace status")
     print(f"root: {ROOT}")
@@ -163,6 +197,7 @@ def main(argv: list[str]) -> int:
     subcommands.add_parser("bootstrap", help="Create local data directories")
     subcommands.add_parser("bootstrap:models", help="Create local model placeholder metadata")
     subcommands.add_parser("verify", help="Run the current local verification stack")
+    subcommands.add_parser("verify:desktop", help="Build and verify the packaged desktop artifact for the current platform")
     args = parser.parse_args(argv)
 
     if args.command == "doctor":
@@ -175,6 +210,8 @@ def main(argv: list[str]) -> int:
         return bootstrap_models()
     if args.command == "verify":
         return verify()
+    if args.command == "verify:desktop":
+        return verify_desktop_package()
     return 2
 
 

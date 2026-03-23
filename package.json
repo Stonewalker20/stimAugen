@@ -14,9 +14,11 @@
     "doctor": "python3 scripts/dev.py doctor",
     "lint": "npm run lint --workspaces --if-present",
     "package:desktop": "npm run tauri:build --workspace @home-voice-studio/desktop",
+    "package:desktop:dmg": "npm run tauri:build:dmg --workspace @home-voice-studio/desktop",
     "package:sidecar": "node scripts/package-sidecar.mjs prepare",
     "status": "python3 scripts/dev.py status",
     "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "verify:desktop": "python3 scripts/dev.py verify:desktop"
   }
 }

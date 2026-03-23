@@ -5,7 +5,6 @@ from .health_service import HealthService
 from .isolation import IsolationService
 from .jobs import JobManager, JobService
 from .profile_service import ProfileService
-from .runtime import build_service_container
 from .settings_service import SettingsService
 from .storage import StorageService
 from .tts import TtsService
@@ -23,5 +22,4 @@ __all__ = [
     "StorageService",
     "TtsService",
     "VoiceConversionService",
-    "build_service_container",
 ]

@@ -73,6 +73,12 @@ npm run package:desktop
 That command will either copy a prebuilt `HVS_SIDECAR_BIN` into the Tauri bundle area or attempt a PyInstaller build from `services/inference`.
 On macOS it currently finishes with a launchable `.app` bundle at `apps/desktop/src-tauri/target/release/bundle/macos/Home Voice Studio.app`.
 
+To package and assert that the expected platform artifact exists, run:
+
+```bash
+npm run verify:desktop
+```
+
 ## Privacy Defaults
 
 - The sidecar host is locked to loopback-only addresses. Remote `inferenceHost` values are ignored.
@@ -104,4 +110,5 @@ HVS_E2E_RUN=1 HVS_E2E_URL=http://127.0.0.1:1420 npx playwright test --config tes
 - You can test the browser preview now with `npm run dev --workspace @home-voice-studio/desktop`.
 - You can test the full desktop dev run now with `npm run tauri:dev --workspace @home-voice-studio/desktop` once Rust is installed on your machine.
 - You can test the packaged macOS launcher now with `npm run package:desktop`.
+- You can smoke-verify the packaged macOS launcher now with `npm run verify:desktop`.
 - The remaining packaging gap is release-grade distribution polish such as DMG/notarization and Windows installer validation.

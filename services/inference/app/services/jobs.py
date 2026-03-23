@@ -22,11 +22,19 @@ class JobManager:
 
     async def submit(self, kind: str, request_payload: dict[str, object], runner: JobRunner) -> dict[str, object]:
         job_id = make_id("job")
+        requested_attempts = request_payload.get("maxAttempts", 1)
+        try:
+            max_attempts = max(1, min(3, int(requested_attempts)))
+        except (TypeError, ValueError):
+            max_attempts = 1
         job = {
             "id": job_id,
             "kind": kind,
             "status": "queued",
             "progress": 0,
+            "attemptCount": 0,
+            "maxAttempts": max_attempts,
+            "retryCount": 0,
             "createdAt": utc_now_iso(),
             "startedAt": None,
             "finishedAt": None,
@@ -41,53 +49,82 @@ class JobManager:
         return self._accepted(job)
 
     async def _run_job(self, job_id: str, kind: str, payload: dict[str, object], runner: JobRunner) -> None:
-        await self._patch(job_id, status="running", startedAt=utc_now_iso(), progress=5)
+        current = self.job_repository.get_job(job_id) or {}
+        max_attempts = max(1, int(current.get("maxAttempts", 1)))
 
         async def update_progress(value: int) -> None:
             await self._patch(job_id, progress=max(0, min(100, value)))
 
         try:
-            result = await runner(job_id, payload, update_progress)
-            current = self.job_repository.get_job(job_id)
-            if current is not None and str(current.get("status")) == "cancelled":
-                return
-            await self._patch(
-                job_id,
-                status="completed",
-                progress=100,
-                finishedAt=utc_now_iso(),
-                result=result.get("result"),
-                artifacts=result.get("artifacts", []),
-                error=None,
-            )
+            for attempt in range(1, max_attempts + 1):
+                await self._patch(
+                    job_id,
+                    status="running",
+                    startedAt=current.get("startedAt") or utc_now_iso(),
+                    progress=5,
+                    attemptCount=attempt,
+                    retryCount=max(0, attempt - 1),
+                    finishedAt=None,
+                )
+                try:
+                    result = await runner(job_id, payload, update_progress)
+                    current = self.job_repository.get_job(job_id)
+                    if current is not None and str(current.get("status")) == "cancelled":
+                        return
+                    await self._patch(
+                        job_id,
+                        status="completed",
+                        progress=100,
+                        finishedAt=utc_now_iso(),
+                        result=result.get("result"),
+                        artifacts=result.get("artifacts", []),
+                        error=None,
+                    )
+                    return
+                except AppError as exc:
+                    if exc.error.retryable and attempt < max_attempts:
+                        await self._patch(
+                            job_id,
+                            status="retrying",
+                            progress=0,
+                            error={
+                                "code": exc.error.code,
+                                "message": exc.error.message,
+                                "details": exc.error.details,
+                                "retryable": exc.error.retryable,
+                            },
+                        )
+                        await asyncio.sleep(0)
+                        continue
+                    await self._patch(
+                        job_id,
+                        status="failed",
+                        finishedAt=utc_now_iso(),
+                        error={
+                            "code": exc.error.code,
+                            "message": exc.error.message,
+                            "details": exc.error.details,
+                            "retryable": exc.error.retryable,
+                        },
+                    )
+                    return
+                except Exception as exc:
+                    await self._patch(
+                        job_id,
+                        status="failed",
+                        finishedAt=utc_now_iso(),
+                        error={
+                            "code": "processing_failed",
+                            "message": "The local processing job failed.",
+                            "details": str(exc),
+                            "retryable": False,
+                        },
+                    )
+                    return
         except asyncio.CancelledError:
             self.storage.cleanup_job_dir(job_id)
             await self._patch(job_id, status="cancelled", finishedAt=utc_now_iso(), progress=0)
             raise
-        except AppError as exc:
-            await self._patch(
-                job_id,
-                status="failed",
-                finishedAt=utc_now_iso(),
-                error={
-                    "code": exc.error.code,
-                    "message": exc.error.message,
-                    "details": exc.error.details,
-                    "retryable": exc.error.retryable,
-                },
-            )
-        except Exception as exc:
-            await self._patch(
-                job_id,
-                status="failed",
-                finishedAt=utc_now_iso(),
-                error={
-                    "code": "processing_failed",
-                    "message": "The local processing job failed.",
-                    "details": str(exc),
-                    "retryable": False,
-                },
-            )
         finally:
             self._tasks.pop(job_id, None)
 

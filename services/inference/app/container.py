@@ -50,7 +50,7 @@ class AppContainer:
     def audio_pipeline(self) -> "AudioPipeline":
         from .services.audio_pipeline import AudioPipeline
 
-        return AudioPipeline(self.config.paths)
+        return AudioPipeline()
 
     @cached_property
     def tts_service(self) -> "TtsService":

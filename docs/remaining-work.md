@@ -3,8 +3,8 @@
 ## P0
 
 - Packaged desktop release polish is still incomplete.
-  - The repo now produces a launchable macOS `.app` bundle with a staged sidecar.
-  - DMG generation, signing, notarization, and Windows installer validation are still open.
+  - The repo now produces and smoke-verifies a launchable macOS `.app` bundle with a staged sidecar.
+  - DMG signing/notarization and Windows installer validation are still open.
   - Owner: Desktop Packaging
 
 - End-to-end desktop usage still needs manual validation.
@@ -21,7 +21,8 @@
   - Owner: Model Integration
 
 - Job orchestration still needs deeper runtime behavior.
-  - Cancellation is now explicit and persisted, but retries, resume-on-restart, retention enforcement, and stronger cleanup guarantees are still incomplete.
+  - Cancellation and retryable reruns are now explicit and persisted.
+  - Resume-on-restart, retention enforcement, and stronger cleanup guarantees are still incomplete.
   - Owner: Backend Runtime
 
 - Desktop bridge contracts should become more explicit.
@@ -43,10 +44,6 @@
 - Release packaging is incomplete.
   - Installers, bundled sidecar assets, platform-specific binary placement, signing, notarization, and release validation remain open.
   - Owner: DevOps and Packaging
-
-- The audio pipeline has a medium-term technical risk.
-  - It still depends on `audioop` and `aifc`, which are deprecated and should be replaced before targeting Python 3.13 or newer long term.
-  - Owner: Audio Pipeline
 
 - Data lifecycle features are still basic.
   - User-facing deletion flows, export and library management, consent audit metadata, and safer cache pruning policies still need work.

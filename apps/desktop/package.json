@@ -8,6 +8,7 @@
     "dev": "vite",
     "lint": "tsc --noEmit",
     "tauri:build": "node ../../scripts/run-tauri.mjs build --config src-tauri/tauri.conf.json --bundles app",
+    "tauri:build:dmg": "node ../../scripts/run-tauri.mjs build --config src-tauri/tauri.conf.json --bundles dmg",
     "tauri:dev": "node ../../scripts/run-tauri.mjs dev --config src-tauri/tauri.dev.conf.json",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"

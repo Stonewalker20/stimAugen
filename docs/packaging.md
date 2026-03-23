@@ -20,9 +20,10 @@ This document covers local release expectations for macOS and Windows. The app i
 ## macOS
 
 - `npm run package:desktop` now produces a launchable `.app` bundle at `apps/desktop/src-tauri/target/release/bundle/macos/Home Voice Studio.app`.
+- `npm run verify:desktop` now packages and asserts that the expected current-platform desktop artifact exists.
 - Sign the `.app` before distribution.
 - Prepare notarization credentials for release builds.
-- DMG generation is still a follow-up release task.
+- `npm run package:desktop:dmg` is available for DMG-specific packaging attempts, but notarized/signable DMG distribution is still a release task.
 - Include the sidecar executable, model bootstrap metadata, and ffmpeg availability checks.
 - Verify that the exported app launches without a developer shell.
 - Confirm the bundled sidecar is located under `apps/desktop/src-tauri/binaries/` during the packaging step.
@@ -38,7 +39,7 @@ This document covers local release expectations for macOS and Windows. The app i
 ## Release checklist
 
 1. Confirm `doctor` passes on the target platform.
-2. Confirm the UI launches with a bundled sidecar produced by `npm run package:desktop`.
+2. Confirm `npm run verify:desktop` passes on the target platform.
 3. Confirm profile creation, TTS, voice conversion, cleanup, and export flows work offline.
 4. Confirm logs are written to the expected local directories.
 5. Confirm temp files are cleaned after successful and cancelled jobs.

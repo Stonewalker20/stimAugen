@@ -13,6 +13,9 @@ class JobSummary(ApiModel):
     kind: str
     status: str
     progress: int
+    attempt_count: int = Field(default=0, alias="attemptCount")
+    max_attempts: int = Field(default=1, alias="maxAttempts")
+    retry_count: int = Field(default=0, alias="retryCount")
     created_at: datetime = Field(alias="createdAt")
     started_at: datetime | None = Field(default=None, alias="startedAt")
     finished_at: datetime | None = Field(default=None, alias="finishedAt")

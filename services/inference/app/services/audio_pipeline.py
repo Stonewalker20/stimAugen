@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import aifc
-import audioop
 import json
 import math
 import shutil
@@ -109,8 +107,6 @@ class AudioPipeline:
         wav_path = work_dir / f"{stem}.wav"
         if source.suffix.lower() == ".wav":
             shutil.copy2(source, wav_path)
-        elif source.suffix.lower() in {".aif", ".aiff"}:
-            self._convert_aiff_to_wav(source, wav_path)
         elif self.ffmpeg_available:
             self._ffmpeg_to_wav(source, wav_path)
         else:
@@ -217,8 +213,9 @@ class AudioPipeline:
             return buffer
         target_peak = int(26000 * (10 ** ((target_dbfs + 16.0) / 20.0)))
         gain = min(4.0, max(0.1, target_peak / peak))
+        samples = self._bytes_to_samples(buffer.pcm_bytes)
         return AudioBuffer(
-            pcm_bytes=audioop.mul(buffer.pcm_bytes, buffer.sample_width, gain),
+            pcm_bytes=self._samples_to_bytes([int(sample * gain) for sample in samples]),
             sample_rate=buffer.sample_rate,
             channels=buffer.channels,
             sample_width=buffer.sample_width,
@@ -275,8 +272,12 @@ class AudioPipeline:
             if not chunk:
                 points.append(0.0)
                 continue
-            chunk_peak = audioop.max(chunk, buffer.sample_width) / full_scale
-            chunk_rms = audioop.rms(chunk, buffer.sample_width) / full_scale
+            chunk_samples = self._bytes_to_samples(chunk)
+            if not chunk_samples:
+                points.append(0.0)
+                continue
+            chunk_peak = max(abs(sample) for sample in chunk_samples) / full_scale
+            chunk_rms = math.sqrt(sum(sample * sample for sample in chunk_samples) / len(chunk_samples)) / full_scale
             peak = max(peak, chunk_peak)
             rms_total += chunk_rms
             points.append(min(1.0, max(0.0, chunk_peak)))
@@ -424,7 +425,7 @@ class AudioPipeline:
                 zero_crossings += 1
         duration_seconds = max(len(samples) / rate, 0.001)
         estimated_pitch = max(80.0, min(320.0, (zero_crossings / 2) / duration_seconds))
-        rms = max(audioop.rms(mono, TARGET_WIDTH), 1)
+        rms = max(int(math.sqrt(sum(sample * sample for sample in samples) / len(samples))), 1)
         average_level = 20 * math.log10(rms / 32767)
         return {"estimatedPitchHz": estimated_pitch, "averageLevelDb": average_level}
 
@@ -444,22 +445,6 @@ class AudioPipeline:
         if completed.returncode != 0:
             raise AppError(code="ffmpeg_transcode_failed", message="Audio import failed.", details=completed.stderr)
 
-    def _convert_aiff_to_wav(self, source: Path, destination: Path) -> None:
-        with aifc.open(str(source), "rb") as handle:
-            frames = handle.readframes(handle.getnframes())
-            sample_rate = handle.getframerate()
-            channels = handle.getnchannels()
-            sample_width = handle.getsampwidth()
-        if sample_width != TARGET_WIDTH:
-            frames = audioop.lin2lin(frames, sample_width, TARGET_WIDTH)
-        if channels > 1:
-            frames = audioop.tomono(frames, TARGET_WIDTH, 0.5, 0.5)
-            channels = 1
-        if sample_rate != TARGET_SAMPLE_RATE:
-            frames, _ = audioop.ratecv(frames, TARGET_WIDTH, channels, sample_rate, TARGET_SAMPLE_RATE, None)
-            sample_rate = TARGET_SAMPLE_RATE
-        self._write_wave(destination, frames, sample_rate, channels)
-
     def _read_wave(self, path: Path) -> tuple[bytes, int, int]:
         with wave.open(str(path), "rb") as handle:
             sample_width = handle.getsampwidth()
@@ -467,7 +452,7 @@ class AudioPipeline:
             channels = handle.getnchannels()
             rate = handle.getframerate()
         if sample_width != TARGET_WIDTH:
-            frames = audioop.lin2lin(frames, sample_width, TARGET_WIDTH)
+            frames = self._convert_sample_width(frames, sample_width, TARGET_WIDTH)
         return frames, rate, channels
 
     def _write_wave(self, path: Path, frames: bytes, sample_rate: int, channels: int) -> None:
@@ -480,13 +465,34 @@ class AudioPipeline:
     def _to_mono(self, frames: bytes, channels: int) -> bytes:
         if channels <= 1:
             return frames
-        return audioop.tomono(frames, TARGET_WIDTH, 0.5, 0.5)
+        samples = self._bytes_to_samples(frames)
+        mono_samples: list[int] = []
+        for index in range(0, len(samples), channels):
+            frame = samples[index : index + channels]
+            if not frame:
+                continue
+            mono_samples.append(int(sum(frame) / len(frame)))
+        return self._samples_to_bytes(mono_samples)
 
     def _resample(self, frames: bytes, source_rate: int, target_rate: int) -> bytes:
         if source_rate == target_rate:
             return frames
-        resampled, _ = audioop.ratecv(frames, TARGET_WIDTH, TARGET_CHANNELS, source_rate, target_rate, None)
-        return resampled
+        samples = self._bytes_to_samples(frames)
+        if not samples or source_rate <= 0 or target_rate <= 0:
+            return frames
+        if len(samples) == 1:
+            return self._samples_to_bytes(samples)
+        target_length = max(1, int(round(len(samples) * target_rate / source_rate)))
+        scale = len(samples) / target_length
+        resampled: list[int] = []
+        for index in range(target_length):
+            position = index * scale
+            left_index = min(len(samples) - 1, int(position))
+            right_index = min(len(samples) - 1, left_index + 1)
+            blend = position - left_index
+            value = samples[left_index] * (1.0 - blend) + samples[right_index] * blend
+            resampled.append(int(value))
+        return self._samples_to_bytes(resampled)
 
     def _trim_silence(self, frames: bytes, threshold: int = 350) -> bytes:
         samples = self._bytes_to_samples(frames)
@@ -507,10 +513,14 @@ class AudioPipeline:
         if peak == 0:
             return frames
         gain = min(4.0, target_peak / peak)
-        return audioop.mul(frames, TARGET_WIDTH, gain)
+        samples = self._bytes_to_samples(frames)
+        return self._samples_to_bytes([int(sample * gain) for sample in samples])
 
     def _peak(self, frames: bytes) -> int:
-        return audioop.max(frames, TARGET_WIDTH) if frames else 0
+        if not frames:
+            return 0
+        samples = self._bytes_to_samples(frames)
+        return max(abs(sample) for sample in samples) if samples else 0
 
     def _bytes_to_samples(self, frames: bytes) -> list[int]:
         if not frames:
@@ -521,3 +531,28 @@ class AudioPipeline:
     def _samples_to_bytes(self, samples: list[int]) -> bytes:
         clamped = [max(-32768, min(32767, int(sample))) for sample in samples]
         return struct.pack("<" + ("h" * len(clamped)), *clamped) if clamped else b""
+
+    def _convert_sample_width(self, frames: bytes, source_width: int, target_width: int) -> bytes:
+        if source_width == target_width:
+            return frames
+        if target_width != TARGET_WIDTH:
+            raise AppError(code="unsupported_sample_width", message=f"Unsupported target sample width: {target_width}")
+        if source_width == 1:
+            samples = [((value - 128) << 8) for value in frames]
+            return self._samples_to_bytes(samples)
+        if source_width == 2:
+            return frames
+        if source_width == 3:
+            samples: list[int] = []
+            for index in range(0, len(frames), 3):
+                chunk = frames[index : index + 3]
+                if len(chunk) < 3:
+                    break
+                value = int.from_bytes(chunk + (b"\xff" if chunk[2] & 0x80 else b"\x00"), "little", signed=True)
+                samples.append(value >> 8)
+            return self._samples_to_bytes(samples)
+        if source_width == 4:
+            count = len(frames) // 4
+            samples32 = struct.unpack("<" + ("i" * count), frames[: count * 4])
+            return self._samples_to_bytes([sample >> 16 for sample in samples32])
+        raise AppError(code="unsupported_sample_width", message=f"Unsupported source sample width: {source_width}")
