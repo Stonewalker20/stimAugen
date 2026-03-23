@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Home Voice Studio",
+  "version": "0.1.0",
+  "identifier": "com.stimaugen.homevoicestudio",
+  "build": {
+    "beforeDevCommand": "npm run dev --workspace @home-voice-studio/desktop",
+    "beforeBuildCommand": "npm run build --workspace @home-voice-studio/desktop",
+    "devUrl": "http://127.0.0.1:1420",
+    "frontendDist": "../dist"
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "externalBin": ["binaries/home-voice-studio-inference"]
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Home Voice Studio",
+        "label": "main",
+        "width": 1400,
+        "height": 920,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ]
+  }
+}
+

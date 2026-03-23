@@ -1,0 +1,20 @@
+{
+  "name": "home-voice-studio",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "bootstrap": "python3 scripts/dev.py bootstrap",
+    "bootstrap:models": "python3 scripts/bootstrap_models.py --check",
+    "dev": "python3 scripts/dev.py status",
+    "doctor": "python3 scripts/dev.py doctor",
+    "lint": "npm run lint --workspaces --if-present",
+    "status": "python3 scripts/dev.py status",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  }
+}

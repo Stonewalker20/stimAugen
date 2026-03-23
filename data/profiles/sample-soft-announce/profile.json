@@ -1,0 +1,32 @@
+{
+  "id": "sample-soft-announce",
+  "name": "Sample Soft Announcer",
+  "description": "Built-in local sample profile for testing the UI and workflows. Add your own reference clips before using cloning features.",
+  "consentConfirmed": false,
+  "createdAt": "2026-03-23T00:00:00Z",
+  "updatedAt": "2026-03-23T00:00:00Z",
+  "embeddingStatus": "not_started",
+  "referenceClips": [
+    {
+      "id": "artifact_20260323194832_01979a90",
+      "jobId": null,
+      "kind": "reference",
+      "label": "Sample reference clip placeholder",
+      "path": "/Users/cordellstonecipher/stimAugen/data/profiles/sample-soft-announce/reference-clips/reference-1.wav",
+      "format": "wav",
+      "durationMs": 749,
+      "sampleRate": 22050,
+      "channels": 1,
+      "createdAt": "2026-03-23T19:48:32+00:00"
+    }
+  ],
+  "defaultSettings": {
+    "speed": 1.0,
+    "strength": 0.65,
+    "pitchPreserve": true,
+    "cleanupLevel": 0.5
+  },
+  "analysis": {
+    "notes": "Seed profile only. Consent remains unconfirmed until the user explicitly approves voice-cloning use."
+  }
+}

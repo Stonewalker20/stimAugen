@@ -1,0 +1,11 @@
+{
+  "id": "sample-soft-announce_clip_01",
+  "kind": "reference",
+  "label": "Sample reference clip placeholder",
+  "path": "reference-clips/reference-1.wav",
+  "format": "wav",
+  "durationMs": 0,
+  "sampleRate": 0,
+  "channels": 1,
+  "createdAt": "2026-03-23T00:00:00Z"
+}

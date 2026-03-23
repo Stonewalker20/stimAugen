@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Rust / Tauri
+target/
+dist/
+release/
+.tauri/
+
+# Logs and caches
+*.log
+data/cache/
+data/exports/
+data/models/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Environment
+.env
+.env.*
+!.env.example
