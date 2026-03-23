@@ -12,12 +12,14 @@ import { resolveArtifactUrl } from "@/lib/runtime";
 export function ResultPreview({
   title,
   artifact,
+  job,
   secondaryText,
   onExport,
   exportBusy = false,
 }: {
   title: string;
   artifact?: AudioArtifact;
+  job?: ProcessingJob;
   secondaryText?: string;
   onExport?: () => void;
   exportBusy?: boolean;
@@ -25,6 +27,21 @@ export function ResultPreview({
   return (
     <Card>
       <SectionTitle title={title} subtitle={secondaryText ?? "Latest output"} compact />
+      {job ? (
+        <div className="result-status">
+          <div className="history-meta">
+            <div>
+              <p className="history-kind">{job.kind.replace("_", " ")}</p>
+              <p className="muted">{formatStatus(job.status)}</p>
+            </div>
+            <Badge tone={job.status === "completed" ? "success" : job.status === "failed" ? "danger" : "warning"}>
+              {job.progress}%
+            </Badge>
+          </div>
+          <ProgressBar value={job.progress} />
+          {job.error ? <p className="error-copy">{job.error.message}</p> : null}
+        </div>
+      ) : null}
       {artifact ? (
         <div className="result-stack">
           <div className="audio-card">
@@ -54,7 +71,11 @@ export function ResultPreview({
           <code className="path-pill">{artifact.path}</code>
         </div>
       ) : (
-        <p className="muted">No result yet. Start a job to see the preview here.</p>
+        <p className="muted">
+          {job?.status === "failed"
+            ? "The job failed before a playable result was created."
+            : "No result yet. Start a job to see the preview here."}
+        </p>
       )}
     </Card>
   );

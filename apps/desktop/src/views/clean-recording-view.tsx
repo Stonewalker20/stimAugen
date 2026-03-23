@@ -173,6 +173,7 @@ export function CleanRecordingView({ jobs, onSubmit, onExport, settings }: Clean
       <ResultPreview
         title="Cleaned Preview"
         secondaryText="Latest restored clip"
+        job={lastJob}
         artifact={lastJob?.artifacts[0]}
         onExport={lastJob?.artifacts[0] ? () => void quickExport() : undefined}
         exportBusy={exportBusy}

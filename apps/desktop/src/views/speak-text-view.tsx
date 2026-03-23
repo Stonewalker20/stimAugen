@@ -163,6 +163,7 @@ export function SpeakTextView({
       <ResultPreview
         title="Speech Preview"
         secondaryText="Latest generated clip"
+        job={lastJob}
         artifact={lastJob?.artifacts[0]}
         onExport={lastJob?.artifacts[0] ? () => void quickExport() : undefined}
         exportBusy={exportBusy}

@@ -189,6 +189,7 @@ export function ChangeVoiceView({
       <ResultPreview
         title="Before / After"
         secondaryText="Preview the most recent conversion"
+        job={lastJob}
         artifact={lastJob?.artifacts[0]}
         onExport={lastJob?.artifacts[0] ? () => void quickExport() : undefined}
         exportBusy={exportBusy}

@@ -346,6 +346,22 @@ dt {
   justify-content: flex-start;
 }
 
+.result-status {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.75rem 0 0.9rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.error-copy {
+  margin: 0;
+  color: #f7bf9d;
+  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+}
+
 .inline-action {
   border: 1px solid rgba(244, 176, 112, 0.24);
   background: rgba(244, 176, 112, 0.1);
